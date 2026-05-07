@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MoonSniper Improved</title>
+  <meta name="description" content="MoonSniper 改良版：可驗證、可覆盤、可風控的紙交易研究系統。" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070b14;
+      --panel: #101827;
+      --text: #e5eefb;
+      --muted: #9fb0c9;
+      --accent: #75f2c8;
+      --warn: #ffd166;
+      --danger: #ff6b6b;
+      --line: rgba(255,255,255,.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(117,242,200,.16), transparent 28rem),
+        radial-gradient(circle at 80% 0%, rgba(91,141,239,.18), transparent 30rem),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    main { max-width: 1040px; margin: 0 auto; padding: 64px 20px; }
+    .hero { padding: 40px; border: 1px solid var(--line); border-radius: 28px; background: rgba(16,24,39,.82); box-shadow: 0 24px 80px rgba(0,0,0,.35); }
+    h1 { margin: 0 0 12px; font-size: clamp(40px, 8vw, 76px); line-height: 1; letter-spacing: -.06em; }
+    h2 { margin-top: 36px; }
+    .tagline { color: var(--muted); font-size: 20px; max-width: 760px; }
+    .badge { display: inline-flex; gap: 8px; align-items: center; padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--accent); background: rgba(117,242,200,.08); font-weight: 700; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin-top: 28px; }
+    .card { padding: 20px; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.04); }
+    .card strong { color: var(--accent); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .warn { color: var(--warn); }
+    .danger { color: var(--danger); }
+    code { padding: 2px 6px; border-radius: 8px; background: rgba(255,255,255,.08); }
+    footer { margin-top: 36px; color: var(--muted); font-size: 14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div class="badge">🌙 MoonSniper Improved</div>
+      <h1>可驗證的暴漲幣紙交易研究系統</h1>
+      <p class="tagline">
+        這個專案把原本的 Moon Sniper 交易紀錄升級成可審計、可覆盤、可風控的研究管線。
+        目前只做紙交易與策略驗證，不宣稱具有實盤 edge。
+      </p>
+
+      <div class="grid">
+        <div class="card"><strong>資料品質</strong><br />驗證 TP / SL / time-stop 與實際價格條件是否一致。</div>
+        <div class="card"><strong>風險控管</strong><br />追蹤單筆風險、總曝險、同訊號簇相關性風險。</div>
+        <div class="card"><strong>交易覆盤</strong><br />重算 PnL、MFE、MAE，避免錯誤勝率污染決策。</div>
+        <div class="card"><strong>策略驗證</strong><br />用紙交易累積樣本；未經回測、紙交易與覆盤，不宣稱 edge。</div>
+      </div>
+
+      <h2>第一批已知修正目標</h2>
+      <ul>
+        <li>STX 被標示為 <code>tp2</code>，但出場價低於 TP1/TP2：需要偵測為 invalid record。</li>
+        <li>SUI 價格穿越 stop loss 但仍 open：需要偵測為 <code>overdue_stop_loss</code>。</li>
+        <li>統一由 raw trade + current price 重算 PnL，不直接信任展示欄位。</li>
+        <li>同一時間批量進場需視為同一訊號簇風險，而非完全分散。</li>
+      </ul>
+
+      <h2>文件</h2>
+      <ul>
+        <li><a href="./docs/improvement-plan.md">Improvement Plan</a></li>
+        <li><a href="./docs/trading-record-review.md">Trading Record Review</a></li>
+        <li><a href="./docs/validation-rules.md">Validation Rules</a></li>
+        <li><a href="https://github.com/Hsiao0809/moonsniper">GitHub Repository</a></li>
+      </ul>
+
+      <p class="warn">注意：本頁不是交易建議。任何實盤前都必須完成資料驗證、回測、紙交易與風險審查。</p>
+    </section>
+    <footer>MoonSniper Improved · Research / Paper Trading Only</footer>
+  </main>
+</body>
+</html>
