@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Moon Sniper Paper Trade",
+  "type": "object",
+  "required": [
+    "id",
+    "symbol",
+    "direction",
+    "status",
+    "entry_price",
+    "entry_time",
+    "position_value",
+    "margin",
+    "leverage",
+    "stop_loss_price",
+    "tp1_price",
+    "tp2_price"
+  ],
+  "properties": {
+    "id": {"type": "string"},
+    "symbol": {"type": "string"},
+    "base": {"type": "string"},
+    "direction": {"enum": ["long", "short"]},
+    "status": {"enum": ["open", "closed"]},
+    "entry_price": {"type": "number", "exclusiveMinimum": 0},
+    "entry_time": {"type": "string", "format": "date-time"},
+    "exit_price": {"type": ["number", "null"]},
+    "exit_time": {"type": ["string", "null"], "format": "date-time"},
+    "exit_reason": {"enum": ["tp1", "tp2", "stop_loss", "time_stop", "manual", null]},
+    "position_value": {"type": "number", "minimum": 0},
+    "margin": {"type": "number", "minimum": 0},
+    "leverage": {"type": "number", "minimum": 1},
+    "stop_loss_price": {"type": "number", "exclusiveMinimum": 0},
+    "tp1_price": {"type": "number", "exclusiveMinimum": 0},
+    "tp2_price": {"type": "number", "exclusiveMinimum": 0},
+    "score": {"type": ["number", "null"]},
+    "tags": {"type": "array", "items": {"type": "string"}},
+    "signal_cluster_id": {"type": ["string", "null"]},
+    "signal_snapshot": {"type": ["object", "null"]}
+  }
+}
