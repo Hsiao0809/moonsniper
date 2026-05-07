@@ -106,7 +106,7 @@
     <div>
       <div class="pill">🌙 MoonSniper Improved · Dashboard</div>
       <h1>交易訊號驗證儀表板</h1>
-      <div class="subtitle">讀取原版 Moon Sniper 的公開 <code>signals.json</code> / <code>paper_trades.json</code>，在前端重算即時價格、PnL、TP/SL 驗證、風險曝險。這是研究與紙交易 dashboard，不是交易建議。</div>
+      <div class="subtitle">讀取 MoonSniper 自己產生的 <code>data/dashboard_state.json</code>，展示已重算的 PnL、TP/SL 驗證、風險曝險與資料品質。這是研究與紙交易 dashboard，不是交易建議。</div>
       <div id="status" class="statusline">初始化中…</div>
     </div>
     <div class="toolbar">
@@ -177,138 +177,90 @@
       </div>
     </section>
 
-    <div class="footer">資料來源：原版 Moon Sniper 公開 JSON + Binance public ticker。若資料來源失敗或 stale，本 dashboard 應視為不可用。</div>
+    <div class="footer">資料來源：MoonSniper 自己的 data/dashboard_state.json。上游來源與產生時間寫在 provenance；若資料 stale，本 dashboard 應視為不可用。</div>
   </main>
 
 <script>
-const SOURCE_BASE = 'https://hsiao0809.github.io/moon-sniper';
+const DASHBOARD_STATE_URL = './data/dashboard_state.json';
 const fmtU = n => (Number(n) >= 0 ? '+' : '') + Number(n || 0).toFixed(2) + 'U';
 const fmtPct = n => (Number(n) >= 0 ? '+' : '') + Number(n || 0).toFixed(2) + '%';
 const fmtPrice = n => { n = Number(n || 0); return '$' + n.toFixed(n < 1 ? 6 : n < 100 ? 4 : 2); };
 const fmtVol = v => v >= 1e9 ? (v/1e9).toFixed(2)+'B' : v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(1)+'K' : String(Math.round(v || 0));
-let state = { signals: [], trades: [], prices: {}, issues: [] };
+let state = null;
 
 function setStatus(s) { document.getElementById('status').textContent = s; }
 function tagClass(t) { return /停損|invalid|overdue|錯|賣壓/.test(t) ? 'bad' : /反轉|注意|stale|time/.test(t) ? 'warn' : 'good'; }
-function riskToStop(t) { return Number(t.position_value || 0) * (1 - Number(t.stop_loss_price || 0) / Number(t.entry_price || 1)); }
-function pnlForTrade(t) {
-  const value = Number(t.position_value || 0);
-  if (t.status === 'closed' && t.exit_price) return value * (Number(t.exit_price) / Number(t.entry_price) - 1);
-  const live = state.prices[t.symbol];
-  if (t.status === 'open' && live) return value * (Number(live) / Number(t.entry_price) - 1);
-  return Number(t.unrealized_pnl_usdt || t.realized_pnl_usdt || 0);
-}
-function validateTrade(t) {
-  const out = [];
-  const exit = Number(t.exit_price || 0), tp1 = Number(t.tp1_price || 0), tp2 = Number(t.tp2_price || 0), sl = Number(t.stop_loss_price || 0);
-  if (t.status === 'closed') {
-    if (!t.exit_price) out.push('missing_exit_price');
-    if (t.exit_reason === 'tp2' && exit < tp2) out.push('invalid_tp2_exit_below_tp2');
-    if (t.exit_reason === 'tp1' && exit < tp1) out.push('invalid_tp1_exit_below_tp1');
-    if (t.exit_reason === 'stop_loss' && exit > sl) out.push('invalid_stop_loss_exit_above_sl');
-    const recomputed = pnlForTrade(t);
-    if (Math.abs(recomputed - Number(t.realized_pnl_usdt || 0)) > 0.01) out.push('pnl_mismatch');
-  }
-  if (t.status === 'open') {
-    const live = state.prices[t.symbol];
-    if (live && live <= sl) out.push('overdue_stop_loss');
-    if (live && live >= tp2) out.push('missed_tp2_exit');
-    if (live && live >= tp1 && !t.take_profit_1_hit) out.push('missed_tp1');
-  }
-  return out;
-}
-async function getJson(url) {
-  const r = await fetch(url + (url.includes('?') ? '&' : '?') + '_=' + Date.now());
-  if (!r.ok) throw new Error(url + ' HTTP ' + r.status);
-  return r.json();
-}
-async function fetchPrices(symbols) {
-  if (!symbols.length) return {};
-  const chunks = [];
-  for (let i = 0; i < symbols.length; i += 80) chunks.push(symbols.slice(i, i+80));
-  const prices = {};
-  for (const c of chunks) {
-    const url = 'https://api.binance.com/api/v3/ticker/price?symbols=' + encodeURIComponent(JSON.stringify(c));
-    const r = await fetch(url);
-    if (!r.ok) continue;
-    const arr = await r.json();
-    arr.forEach(x => prices[x.symbol] = Number(x.price));
-  }
-  return prices;
-}
+
 async function refresh() {
   try {
-    setStatus('載入原版公開 JSON…');
-    const [signalsData, tradesData] = await Promise.all([
-      getJson(SOURCE_BASE + '/signals.json'),
-      getJson(SOURCE_BASE + '/paper_trades.json')
-    ]);
-    state.signals = signalsData.signals || [];
-    state.trades = tradesData.trades || [];
-    const symbols = [...new Set([...state.signals.map(s => s.symbol), ...state.trades.filter(t => t.status === 'open').map(t => t.symbol)])];
-    setStatus('拉取 Binance 即時價格…');
-    state.prices = await fetchPrices(symbols);
-    state.issues = state.trades.flatMap(t => validateTrade(t).map(code => ({ trade: t, code })));
-    render(signalsData, tradesData);
-    setStatus(`已更新：訊號 ${state.signals.length}，交易 ${state.trades.length}，驗證異常 ${state.issues.length}。來源時間：${new Date(signalsData.scanned_at).toLocaleString('zh-TW')}`);
+    setStatus('讀取 MoonSniper 自己的 dashboard_state.json…');
+    const r = await fetch(DASHBOARD_STATE_URL + '?_=' + Date.now());
+    if (!r.ok) throw new Error('dashboard_state.json HTTP ' + r.status);
+    state = await r.json();
+    render();
+    setStatus(`已更新：訊號 ${state.metrics.signal_count}，交易 ${state.metrics.total_trades}，驗證異常 ${state.metrics.invalid_count}。資料產生時間：${new Date(state.generated_at).toLocaleString('zh-TW')}`);
   } catch (e) {
     console.error(e);
-    setStatus('載入失敗：' + e.message);
+    setStatus('載入失敗：' + e.message + '。請先執行 scripts/build_dashboard_state.py 產生 data/dashboard_state.json。');
   }
 }
-function render(signalsData, tradesData) {
-  const open = state.trades.filter(t => t.status === 'open');
-  const closed = state.trades.filter(t => t.status === 'closed');
-  const openPnl = open.reduce((a,t)=>a+pnlForTrade(t),0);
-  const closedPnl = closed.reduce((a,t)=>a+pnlForTrade(t),0);
-  const balance = Number(tradesData.stats?.account_balance || 300);
-  const totalRisk = open.reduce((a,t)=>a+riskToStop(t),0);
-  document.getElementById('kSignals').textContent = state.signals.length;
-  document.getElementById('kTrades').textContent = `${open.length} / ${closed.length}`;
-  document.getElementById('kEquity').textContent = (balance + openPnl + closedPnl).toFixed(2) + 'U';
-  document.getElementById('kUnreal').textContent = fmtU(openPnl); document.getElementById('kUnreal').className = 'value ' + (openPnl >= 0 ? 'green' : 'red');
-  document.getElementById('kInvalid').textContent = state.issues.length; document.getElementById('kInvalid').className = 'value ' + (state.issues.length ? 'red' : 'green');
-  document.getElementById('kRisk').textContent = totalRisk.toFixed(2) + 'U';
-  renderSignals(); renderTrades(); renderRisk(balance, openPnl, closedPnl, totalRisk);
+
+function render() {
+  const m = state.metrics;
+  document.getElementById('kSignals').textContent = m.signal_count;
+  document.getElementById('kTrades').textContent = `${m.open_count} / ${m.closed_count}`;
+  document.getElementById('kEquity').textContent = Number(m.estimated_equity_usdt).toFixed(2) + 'U';
+  document.getElementById('kUnreal').textContent = fmtU(m.open_pnl_usdt);
+  document.getElementById('kUnreal').className = 'value ' + (m.open_pnl_usdt >= 0 ? 'green' : 'red');
+  document.getElementById('kInvalid').textContent = m.invalid_count;
+  document.getElementById('kInvalid').className = 'value ' + (m.invalid_count ? 'red' : 'green');
+  document.getElementById('kRisk').textContent = Number(m.theoretical_sl_risk_usdt).toFixed(2) + 'U';
+  renderSignals();
+  renderTrades();
+  renderRisk();
 }
+
 function renderSignals() {
   const body = document.getElementById('signalsBody');
-  body.innerHTML = state.signals.map((s,i) => {
-    const scan = Number(s.price), live = state.prices[s.symbol] || scan;
+  body.innerHTML = (state.signals || []).map((s,i) => {
+    const scan = Number(s.price), live = state.prices?.[s.symbol] || scan;
     const fromScan = scan ? ((live - scan) / scan) * 100 : 0;
     const scores = s.scores || {};
     const tags = (s.tags || []).map(t => `<span class="tag ${tagClass(t)}">${t}</span>`).join('');
     return `<tr><td>${i+1}</td><td><a href="https://www.tradingview.com/chart/?symbol=BINANCE:${s.symbol}" target="_blank">${s.base || s.symbol}</a></td><td>${fmtPrice(scan)}</td><td>${fmtPrice(live)}</td><td class="${fromScan>=0?'green':'red'}">${fmtPct(fromScan)}</td><td class="${Number(s.price_change_24h)>=0?'green':'red'}">${fmtPct(s.price_change_24h)}</td><td>${fmtVol(s.volume_24h_usdt)}</td><td><b>${scores.total ?? '—'}</b></td><td class="small">量 ${scores.volume ?? '—'} / 動 ${scores.momentum ?? '—'} / 突 ${scores.breakout ?? '—'} / OB ${scores.orderbook ?? '—'}</td><td><div class="tags">${tags}</div></td></tr>`;
-  }).join('') || '<tr><td colspan="10">沒有資料</td></tr>';
+  }).join('') || '<tr><td colspan="10">沒有資料。請產生 data/dashboard_state.json。</td></tr>';
 }
+
 function renderTrades() {
   const list = document.getElementById('tradeList');
-  const sorted = [...state.trades].sort((a,b)=>String(b.entry_time).localeCompare(String(a.entry_time)));
+  const sorted = [...(state.trades || [])].sort((a,b)=>String(b.entry_time).localeCompare(String(a.entry_time)));
   list.innerHTML = sorted.map(t => {
-    const issues = validateTrade(t);
-    const pnl = pnlForTrade(t);
-    const live = state.prices[t.symbol];
-    const issueHtml = issues.map(x => `<span class="issue">${x}</span>`).join('') || '<span class="tag good">valid by current checks</span>';
-    return `<div class="trade"><div><div class="trade-title">${t.direction === 'short' ? '🔴' : '🟢'} <a href="https://www.tradingview.com/chart/?symbol=BINANCE:${t.symbol}" target="_blank">${t.base || t.symbol}</a> <span class="tag ${t.status==='open'?'warn':'good'}">${t.status}</span></div><div class="meta"><span>entry ${fmtPrice(t.entry_price)}</span>${live?`<span>live ${fmtPrice(live)}</span>`:''}${t.exit_price?`<span>exit ${fmtPrice(t.exit_price)}</span>`:''}<span>SL ${fmtPrice(t.stop_loss_price)}</span><span>TP1 ${fmtPrice(t.tp1_price)}</span><span>TP2 ${fmtPrice(t.tp2_price)}</span><span>risk ${riskToStop(t).toFixed(2)}U</span></div><div class="issues">${issueHtml}</div></div><div><div class="value ${pnl>=0?'green':'red'}" style="font-size:22px">${fmtU(pnl)}</div><div class="small">score ${t.score ?? '—'} · ${new Date(t.entry_time).toLocaleString('zh-TW')}</div></div></div>`;
+    const issues = t.validation_issues || [];
+    const pnl = Number(t.computed_pnl_usdt || 0);
+    const live = t.current_price;
+    const issueHtml = issues.map(x => `<span class="issue">${x}</span>`).join('') || '<span class="tag good">valid by generated checks</span>';
+    return `<div class="trade"><div><div class="trade-title">${t.direction === 'short' ? '🔴' : '🟢'} <a href="https://www.tradingview.com/chart/?symbol=BINANCE:${t.symbol}" target="_blank">${t.base || t.symbol}</a> <span class="tag ${t.validation_status==='invalid'?'bad':t.status==='open'?'warn':'good'}">${t.status} / ${t.validation_status}</span></div><div class="meta"><span>entry ${fmtPrice(t.entry_price)}</span>${live?`<span>live ${fmtPrice(live)}</span>`:''}${t.exit_price?`<span>exit ${fmtPrice(t.exit_price)}</span>`:''}<span>SL ${fmtPrice(t.stop_loss_price)}</span><span>TP1 ${fmtPrice(t.tp1_price)}</span><span>TP2 ${fmtPrice(t.tp2_price)}</span><span>risk ${Number(t.risk_to_stop_usdt||0).toFixed(2)}U</span></div><div class="issues">${issueHtml}</div></div><div><div class="value ${pnl>=0?'green':'red'}" style="font-size:22px">${fmtU(pnl)}</div><div class="small">score ${t.score ?? '—'} · ${new Date(t.entry_time).toLocaleString('zh-TW')}</div></div></div>`;
   }).join('') || '<div class="notice">沒有交易資料</div>';
 }
-function renderRisk(balance, openPnl, closedPnl, totalRisk) {
+
+function renderRisk() {
   const issuesList = document.getElementById('issuesList');
-  issuesList.innerHTML = state.issues.map(({trade, code}) => `<div class="trade"><div><b>${trade.symbol}</b><div class="issues"><span class="issue">${code}</span></div></div><div class="small">${trade.id}</div></div>`).join('') || '<div class="notice">目前檢查未發現異常。</div>';
-  const open = state.trades.filter(t=>t.status==='open');
-  const exposure = open.reduce((a,t)=>a+Number(t.position_value||0),0);
-  const margin = open.reduce((a,t)=>a+Number(t.margin||0),0);
-  const sameMinute = Object.entries(open.reduce((m,t)=>{ const k=String(t.entry_time).slice(0,16); (m[k] ||= []).push(t.symbol); return m; },{})).filter(([_,v])=>v.length>1);
-  document.getElementById('riskSummary').innerHTML = `<div class="trade"><div><b>帳戶基準</b><div class="meta"><span>balance ${balance.toFixed(2)}U</span><span>estimated equity ${(balance+openPnl+closedPnl).toFixed(2)}U</span></div></div></div><div class="trade"><div><b>開倉曝險</b><div class="meta"><span>position value ${exposure.toFixed(2)}U</span><span>margin ${margin.toFixed(2)}U</span><span>theoretical SL risk ${totalRisk.toFixed(2)}U</span></div></div></div><div class="trade"><div><b>同分鐘群集</b><div class="meta">${sameMinute.length ? sameMinute.map(([k,v])=>`<span>${k}: ${v.join(', ')}</span>`).join('') : '<span>無明顯同分鐘群集</span>'}</div></div></div>`;
+  const issues = state.issues || [];
+  issuesList.innerHTML = issues.map(i => `<div class="trade"><div><b>${i.symbol}</b><div class="issues"><span class="issue">${i.code}</span></div></div><div class="small">${i.trade_id}</div></div>`).join('') || '<div class="notice">目前檢查未發現異常。</div>';
+  const m = state.metrics;
+  const open = (state.trades || []).filter(t=>t.status==='open');
+  const sameMinute = Object.entries(open.reduce((acc,t)=>{ const k=String(t.entry_time).slice(0,16); (acc[k] ||= []).push(t.symbol); return acc; },{})).filter(([_,v])=>v.length>1);
+  document.getElementById('riskSummary').innerHTML = `<div class="trade"><div><b>資料所有權</b><div class="meta"><span>讀取 ./data/dashboard_state.json</span><span>${state.provenance?.mode || 'unknown provenance'}</span></div></div></div><div class="trade"><div><b>帳戶與曝險</b><div class="meta"><span>equity ${Number(m.estimated_equity_usdt).toFixed(2)}U</span><span>gross exposure ${Number(m.gross_open_exposure_usdt).toFixed(2)}U</span><span>margin ${Number(m.margin_used_usdt).toFixed(2)}U</span><span>SL risk ${Number(m.theoretical_sl_risk_usdt).toFixed(2)}U</span></div></div></div><div class="trade"><div><b>同分鐘群集</b><div class="meta">${sameMinute.length ? sameMinute.map(([k,v])=>`<span>${k}: ${v.join(', ')}</span>`).join('') : '<span>無明顯同分鐘群集</span>'}</div></div></div>`;
 }
+
 document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', () => {
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active'); document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
 }));
 document.getElementById('refreshBtn').addEventListener('click', refresh);
 refresh();
-setInterval(refresh, 30000);
 </script>
 </body>
 </html>
