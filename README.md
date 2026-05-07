@@ -42,9 +42,17 @@ moon-sniper-improved/
 - 若未來轉實盤，預設單一 live trade idea 最大計畫虧損不得超過 10U。
 - 同一批次/同一訊號簇總風險需另外計算，不可把高度相關多單視為分散。
 
+## 學習與設計文件
+
+- [原版 Moon Sniper 學習筆記](docs/learning-from-original-moon-sniper.md)
+- [原版交易紀錄覆盤](docs/trading-record-review.md)
+- [改良實作計畫](docs/improvement-plan.md)
+- [紙交易驗證規則](docs/validation-rules.md)
+
 ## 下一步
 
 1. 將原版 `paper_trades.json` 匯入測試資料。
 2. 實作 validation CLI，輸出 invalid records。
 3. 修正 TP/SL/time-stop 狀態機。
 4. 新增每日覆盤報告產生器。
+5. 產生 `dashboard_state.json`，讓 GitHub Pages 只展示通過驗證的統計。
