@@ -1,0 +1,246 @@
+{
+  "scanned_at": "2026-05-08T08:00:00Z",
+  "total_scanned": 412,
+  "signals": [
+    {
+      "symbol": "SOLUSDT",
+      "base": "SOL",
+      "price": 148.20,
+      "price_change_24h": 8.45,
+      "volume_24h_usdt": 1842000000,
+      "high_24h": 152.80,
+      "low_24h": 136.50,
+      "scores": {
+        "total": 78,
+        "volume": 24,
+        "volume_ratio": 2.8,
+        "momentum": 20,
+        "breakout": 14,
+        "orderbook": 10,
+        "smart_money": 5,
+        "consolidation": 5,
+        "overbought_penalty": 0
+      },
+      "orderbook": {
+        "bid_vol_usdt": 2340000,
+        "ask_vol_usdt": 1620000,
+        "bid_ask_ratio": 1.44,
+        "support_score": 8,
+        "resistance_score": 4
+      },
+      "tags": ["📊 量爆增", "⚡ 上漲中", "📈 突破壓力", "📗 買盤強勁"],
+      "patterns": ["bullish_engulfing"],
+      "smart_money": { "volume_spike": true, "price_up": true }
+    },
+    {
+      "symbol": "AVAXUSDT",
+      "base": "AVAX",
+      "price": 34.72,
+      "price_change_24h": 11.20,
+      "volume_24h_usdt": 623000000,
+      "high_24h": 35.90,
+      "low_24h": 31.20,
+      "scores": {
+        "total": 82,
+        "volume": 22,
+        "volume_ratio": 3.2,
+        "momentum": 20,
+        "breakout": 20,
+        "orderbook": 10,
+        "smart_money": 10,
+        "consolidation": 0,
+        "overbought_penalty": 0
+      },
+      "orderbook": {
+        "bid_vol_usdt": 1850000,
+        "ask_vol_usdt": 1240000,
+        "bid_ask_ratio": 1.49,
+        "support_score": 9,
+        "resistance_score": 3
+      },
+      "tags": ["📊 量爆增", "🔥 強勢", "📈 突破壓力", "📗 買盤強勁", "💰 聰明錢"],
+      "patterns": ["volume_breakout"],
+      "smart_money": { "volume_spike": true, "price_up": true }
+    },
+    {
+      "symbol": "LINKUSDT",
+      "base": "LINK",
+      "price": 14.85,
+      "price_change_24h": 6.30,
+      "volume_24h_usdt": 412000000,
+      "high_24h": 15.20,
+      "low_24h": 13.95,
+      "scores": {
+        "total": 65,
+        "volume": 17,
+        "volume_ratio": 2.1,
+        "momentum": 10,
+        "breakout": 14,
+        "orderbook": 10,
+        "smart_money": 5,
+        "consolidation": 9,
+        "overbought_penalty": 0
+      },
+      "orderbook": {
+        "bid_vol_usdt": 920000,
+        "ask_vol_usdt": 680000,
+        "bid_ask_ratio": 1.35,
+        "support_score": 7,
+        "resistance_score": 5
+      },
+      "tags": ["⚡ 上漲中", "📈 突破壓力", "📗 買盤強勁", "🛡️ 有支撐"],
+      "patterns": [],
+      "smart_money": { "volume_spike": false, "price_up": true }
+    },
+    {
+      "symbol": "INJUSDT",
+      "base": "INJ",
+      "price": 22.14,
+      "price_change_24h": 9.85,
+      "volume_24h_usdt": 285000000,
+      "high_24h": 23.40,
+      "low_24h": 20.10,
+      "scores": {
+        "total": 72,
+        "volume": 22,
+        "volume_ratio": 3.1,
+        "momentum": 20,
+        "breakout": 12,
+        "orderbook": 5,
+        "smart_money": 10,
+        "consolidation": 3,
+        "overbought_penalty": 0
+      },
+      "orderbook": {
+        "bid_vol_usdt": 640000,
+        "ask_vol_usdt": 520000,
+        "bid_ask_ratio": 1.23,
+        "support_score": 6,
+        "resistance_score": 6
+      },
+      "tags": ["📊 量爆增", "⚡ 上漲中", "💰 聰明錢"],
+      "patterns": ["momentum"],
+      "smart_money": { "volume_spike": true, "price_up": true }
+    },
+    {
+      "symbol": "SEIUSDT",
+      "base": "SEI",
+      "price": 0.4312,
+      "price_change_24h": 13.80,
+      "volume_24h_usdt": 198000000,
+      "high_24h": 0.4580,
+      "low_24h": 0.3780,
+      "scores": {
+        "total": 69,
+        "volume": 30,
+        "volume_ratio": 5.2,
+        "momentum": 20,
+        "breakout": 7,
+        "orderbook": 5,
+        "smart_money": 5,
+        "consolidation": 2,
+        "overbought_penalty": -0
+      },
+      "orderbook": {
+        "bid_vol_usdt": 480000,
+        "ask_vol_usdt": 420000,
+        "bid_ask_ratio": 1.14,
+        "support_score": 5,
+        "resistance_score": 7
+      },
+      "tags": ["📊 量爆增", "🔥 強勢"],
+      "patterns": [],
+      "smart_money": { "volume_spike": true, "price_up": false }
+    },
+    {
+      "symbol": "ARBUSDT",
+      "base": "ARB",
+      "price": 0.8920,
+      "price_change_24h": 5.10,
+      "volume_24h_usdt": 176000000,
+      "high_24h": 0.9150,
+      "low_24h": 0.8480,
+      "scores": {
+        "total": 55,
+        "volume": 10,
+        "volume_ratio": 1.6,
+        "momentum": 10,
+        "breakout": 14,
+        "orderbook": 10,
+        "smart_money": 5,
+        "consolidation": 6,
+        "overbought_penalty": 0
+      },
+      "orderbook": {
+        "bid_vol_usdt": 380000,
+        "ask_vol_usdt": 260000,
+        "bid_ask_ratio": 1.46,
+        "support_score": 7,
+        "resistance_score": 4
+      },
+      "tags": ["⚡ 上漲中", "📈 突破壓力", "📗 買盤強勁", "🛡️ 有支撐"],
+      "patterns": ["consolidation_breakout"],
+      "smart_money": { "volume_spike": false, "price_up": true }
+    },
+    {
+      "symbol": "OPUSDT",
+      "base": "OP",
+      "price": 1.842,
+      "price_change_24h": 7.60,
+      "volume_24h_usdt": 152000000,
+      "high_24h": 1.920,
+      "low_24h": 1.710,
+      "scores": {
+        "total": 61,
+        "volume": 15,
+        "volume_ratio": 1.9,
+        "momentum": 15,
+        "breakout": 12,
+        "orderbook": 10,
+        "smart_money": 5,
+        "consolidation": 4,
+        "overbought_penalty": 0
+      },
+      "orderbook": {
+        "bid_vol_usdt": 290000,
+        "ask_vol_usdt": 210000,
+        "bid_ask_ratio": 1.38,
+        "support_score": 6,
+        "resistance_score": 5
+      },
+      "tags": ["⚡ 上漲中", "📈 突破壓力", "📗 買盤強勁"],
+      "patterns": [],
+      "smart_money": { "volume_spike": false, "price_up": true }
+    },
+    {
+      "symbol": "FETUSDT",
+      "base": "FET",
+      "price": 1.562,
+      "price_change_24h": 14.30,
+      "volume_24h_usdt": 134000000,
+      "high_24h": 1.650,
+      "low_24h": 1.360,
+      "scores": {
+        "total": 74,
+        "volume": 24,
+        "volume_ratio": 2.9,
+        "momentum": 20,
+        "breakout": 20,
+        "orderbook": 0,
+        "smart_money": 10,
+        "consolidation": 0,
+        "overbought_penalty": 0
+      },
+      "orderbook": {
+        "bid_vol_usdt": 220000,
+        "ask_vol_usdt": 280000,
+        "bid_ask_ratio": 0.79,
+        "support_score": 4,
+        "resistance_score": 8
+      },
+      "tags": ["📊 量爆增", "🔥 強勢", "📈 突破壓力", "💰 聰明錢", "📕 賣壓"],
+      "patterns": ["ai_narrative"],
+      "smart_money": { "volume_spike": true, "price_up": true }
+    }
+  ]
+}

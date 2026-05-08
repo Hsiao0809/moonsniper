@@ -2,265 +2,1185 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MoonSniper Dashboard</title>
-  <meta name="description" content="MoonSniper 改良版 Dashboard：訊號、紙交易、驗證狀態與風險曝險。" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>🌙 MoonSniper</title>
+  <meta name="theme-color" content="#070b14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <style>
-    :root {
-      color-scheme: dark;
-      --bg: #070b14;
-      --panel: rgba(16, 24, 39, .86);
-      --panel2: rgba(255,255,255,.045);
-      --text: #e5eefb;
-      --muted: #9fb0c9;
-      --line: rgba(255,255,255,.11);
-      --green: #75f2c8;
-      --red: #ff6b6b;
-      --yellow: #ffd166;
-      --blue: #82aaff;
-      --purple: #c792ea;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at 10% 0%, rgba(117,242,200,.15), transparent 28rem),
-        radial-gradient(circle at 90% 0%, rgba(130,170,255,.16), transparent 30rem),
-        var(--bg);
-    }
-    a { color: var(--green); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    header, main { max-width: 1280px; margin: 0 auto; padding: 22px; }
-    header { padding-top: 28px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
-    h1 { margin: 0; font-size: clamp(34px, 6vw, 68px); line-height: .95; letter-spacing: -.06em; }
-    h2 { margin: 0 0 14px; font-size: 20px; }
-    .subtitle { color: var(--muted); margin-top: 10px; max-width: 760px; font-size: 16px; }
-    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
-    button, .pill {
-      border: 1px solid var(--line);
-      color: var(--text);
-      background: rgba(255,255,255,.06);
-      border-radius: 999px;
-      padding: 10px 14px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    button:hover, button.active { border-color: rgba(117,242,200,.55); background: rgba(117,242,200,.10); }
-    .pill { cursor: default; color: var(--muted); }
-    .grid { display: grid; gap: 14px; }
-    .cards { grid-template-columns: repeat(6, minmax(140px, 1fr)); }
-    @media (max-width: 1000px) { .cards { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 680px) { .cards { grid-template-columns: repeat(2, 1fr); } }
-    .card, .panel {
-      border: 1px solid var(--line);
-      background: var(--panel);
-      border-radius: 22px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.25);
-    }
-    .card { padding: 16px; min-height: 98px; }
-    .label { color: var(--muted); font-size: 13px; }
-    .value { font-size: 28px; font-weight: 900; margin-top: 8px; letter-spacing: -.04em; }
-    .green { color: var(--green); } .red { color: var(--red); } .yellow { color: var(--yellow); } .blue { color: var(--blue); } .purple { color: var(--purple); }
-    .panel { padding: 18px; margin-top: 16px; overflow: hidden; }
-    .two-col { display: grid; grid-template-columns: 1.15fr .85fr; gap: 16px; }
-    @media (max-width: 980px) { .two-col { grid-template-columns: 1fr; } }
-    table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    th, td { padding: 10px 9px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
-    th { color: var(--muted); font-size: 12px; font-weight: 800; white-space: nowrap; }
-    tbody tr:hover { background: rgba(255,255,255,.035); }
-    .table-wrap { overflow-x: auto; }
-    .tags { display: flex; flex-wrap: wrap; gap: 5px; max-width: 330px; }
-    .tag { padding: 3px 7px; border-radius: 999px; font-size: 12px; background: rgba(255,255,255,.07); color: var(--muted); border: 1px solid rgba(255,255,255,.08); }
-    .tag.good { color: var(--green); border-color: rgba(117,242,200,.3); }
-    .tag.warn { color: var(--yellow); border-color: rgba(255,209,102,.3); }
-    .tag.bad { color: var(--red); border-color: rgba(255,107,107,.3); }
-    .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
-    .tab-page { display: none; }
-    .tab-page.active { display: block; }
-    .trade-list { display: grid; gap: 10px; }
-    .trade {
-      padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: var(--panel2);
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-    }
-    @media (max-width: 640px) { .trade { grid-template-columns: 1fr; } }
-    .trade-title { font-size: 17px; font-weight: 900; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .meta { color: var(--muted); font-size: 13px; display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
-    .issues { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
-    .issue { color: var(--red); border: 1px solid rgba(255,107,107,.35); background: rgba(255,107,107,.08); border-radius: 999px; padding: 3px 8px; font-size: 12px; }
-    .statusline { color: var(--muted); font-size: 13px; margin-top: 8px; }
-    .notice { border-left: 4px solid var(--yellow); padding: 12px 14px; background: rgba(255,209,102,.08); border-radius: 14px; color: #ffe4a3; }
-    .small { font-size: 12px; color: var(--muted); }
-    .footer { color: var(--muted); font-size: 12px; margin: 20px 0 40px; }
+:root {
+  --bg:#07090f; --s1:#0d1220; --s2:#111827; --s3:rgba(255,255,255,.04);
+  --bd:rgba(255,255,255,.08); --bd2:rgba(0,212,170,.35);
+  --tx:#dde9f8; --mu:#7a90ad;
+  --g:#00d4aa; --r:#f87171; --y:#fbbf24; --b:#60a5fa; --p:#a78bfa;
+  --nav:64px; --hdr:52px; --safe:env(safe-area-inset-bottom,0px);
+  --radius:16px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-tap-highlight-color:transparent;scroll-behavior:smooth}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;
+  background:var(--bg);color:var(--tx);
+  min-height:100dvh;overflow-x:hidden;font-size:15px;line-height:1.5;
+  padding-bottom:calc(var(--nav) + var(--safe));
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 15% 0%,rgba(0,212,170,.10) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 35% at 85% 0%,rgba(99,102,241,.09) 0%,transparent 55%);
+}
+a{color:var(--g);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ── App shell ── */
+#app{position:relative;z-index:1}
+
+/* ── Header ── */
+.hdr{
+  position:sticky;top:0;z-index:200;
+  height:var(--hdr);display:flex;align-items:center;
+  justify-content:space-between;padding:0 14px;gap:10px;
+  background:rgba(7,9,15,.88);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--bd);
+}
+.logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:17px;letter-spacing:-.03em;white-space:nowrap}
+.logo em{font-style:normal;color:var(--g)}
+.hdr-right{display:flex;align-items:center;gap:8px;min-width:0}
+.status-wrap{display:flex;align-items:center;gap:6px;min-width:0}
+#dot{width:7px;height:7px;border-radius:50%;background:var(--mu);flex-shrink:0;transition:background .3s}
+#dot.live{background:var(--g);box-shadow:0 0 7px var(--g);animation:pulse 2.5s infinite}
+#dot.err{background:var(--r)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+#stxt{font-size:11px;color:var(--mu);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px}
+.ib{
+  width:34px;height:34px;border-radius:10px;
+  background:rgba(255,255,255,.05);border:1px solid var(--bd);
+  color:var(--tx);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:17px;transition:background .15s,border-color .15s;flex-shrink:0;
+}
+.ib:hover{background:rgba(0,212,170,.12);border-color:var(--bd2)}
+.ib:active{transform:scale(.9)}
+.gh{font-size:11px;color:var(--mu);border:1px solid var(--bd);border-radius:8px;padding:5px 9px;white-space:nowrap;flex-shrink:0}
+.gh:hover{color:var(--tx);text-decoration:none}
+
+/* ── KPI strip ── */
+.kpi-strip{
+  display:flex;gap:8px;padding:10px 12px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.kpi-strip::-webkit-scrollbar{display:none}
+.kpi{
+  flex-shrink:0;min-width:100px;
+  background:var(--s1);border:1px solid var(--bd);border-radius:14px;
+  padding:11px 13px;
+}
+.kpi .lb{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--mu)}
+.kpi .vl{font-size:19px;font-weight:800;letter-spacing:-.03em;margin-top:3px;line-height:1.2}
+
+/* ── Content ── */
+.content{padding:0 12px 20px;max-width:980px;margin:0 auto}
+
+/* ── Desktop tabs ── */
+.dtabs{
+  display:flex;gap:2px;padding:10px 0 0;
+  border-bottom:1px solid var(--bd);margin-bottom:16px;
+  overflow-x:auto;scrollbar-width:none;
+}
+.dtabs::-webkit-scrollbar{display:none}
+.dt{
+  display:flex;align-items:center;gap:5px;
+  padding:8px 14px;border-radius:8px 8px 0 0;
+  font-size:13px;font-weight:600;color:var(--mu);
+  cursor:pointer;background:none;border:none;
+  border-bottom:2px solid transparent;margin-bottom:-1px;
+  white-space:nowrap;transition:color .15s,border-color .15s;font-family:inherit;
+}
+.dt:hover{color:var(--tx)}
+.dt.active{color:var(--g);border-bottom-color:var(--g)}
+
+/* ── Tab pages ── */
+.tp{display:none}.tp.active{display:block}
+
+/* ── Bottom nav ── */
+.bnav{
+  position:fixed;bottom:0;left:0;right:0;z-index:200;
+  display:flex;
+  background:rgba(10,14,22,.96);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-top:1px solid var(--bd);
+  padding-bottom:var(--safe);
+}
+.bn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;padding:10px 4px;cursor:pointer;color:var(--mu);
+  font-size:10px;font-weight:700;border:none;background:none;
+  transition:color .15s;min-height:54px;font-family:inherit;
+  -webkit-tap-highlight-color:transparent;
+}
+.bn .ic{font-size:22px;line-height:1;transition:filter .2s}
+.bn.active{color:var(--g)}
+.bn.active .ic{filter:drop-shadow(0 0 5px var(--g))}
+
+/* ── Section head ── */
+.sh{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.sh h2{font-size:17px;font-weight:800;flex:1}
+.ts{font-size:11px;color:var(--mu)}
+
+/* ── Signal cards (mobile) ── */
+.card-list{display:grid;gap:10px}
+.sig-card{
+  background:var(--s1);border:1px solid var(--bd);border-radius:var(--radius);
+  padding:14px;position:relative;overflow:hidden;
+}
+.sig-card::before{
+  content:'';position:absolute;top:0;left:0;width:3px;height:100%;
+  background:linear-gradient(180deg,var(--g),rgba(0,212,170,.3));
+}
+.sig-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sig-name{font-size:17px;font-weight:900;letter-spacing:-.02em}
+.sig-name a{color:var(--tx)}
+.ring-wrap{position:relative;width:44px;height:44px;flex-shrink:0}
+.ring-wrap svg{width:44px;height:44px;transform:rotate(-90deg)}
+.ring-wrap .rn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+.sig-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.sig-stat .sl{font-size:10px;color:var(--mu);font-weight:700}
+.sig-stat .sv{font-size:13px;font-weight:700}
+.sig-tags{display:flex;flex-wrap:wrap;gap:4px}
+.sig-breakdown{margin-top:8px;padding-top:8px;border-top:1px solid var(--bd);
+  display:flex;gap:4px;flex-wrap:wrap}
+
+/* ── Table (desktop) ── */
+.card-tbl{background:var(--s1);border:1px solid var(--bd);border-radius:var(--radius);overflow:hidden}
+.tbl-sc{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:13px;white-space:nowrap}
+th{padding:9px 10px;text-align:left;color:var(--mu);font-size:10px;font-weight:700;
+   letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid var(--bd)}
+td{padding:10px 10px;border-bottom:1px solid var(--bd);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.02)}
+td.r{text-align:right;font-variant-numeric:tabular-nums}
+
+/* ── Scan controls ── */
+.scan-box{background:var(--s1);border:1px solid var(--bd);border-radius:var(--radius);padding:14px;margin-bottom:14px}
+.scan-filters{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0 14px}
+.f{display:flex;flex-direction:column;gap:5px}
+.f label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--mu)}
+.f input,.f select{
+  background:rgba(255,255,255,.05);border:1px solid var(--bd);
+  border-radius:10px;color:var(--tx);padding:10px 12px;
+  font-size:14px;font-family:inherit;width:100%;
+  -webkit-appearance:none;transition:border-color .15s;
+}
+.f input:focus,.f select:focus{outline:none;border-color:rgba(0,212,170,.5);box-shadow:0 0 0 3px rgba(0,212,170,.07)}
+.f select option{background:var(--s1)}
+.scan-prog{height:3px;background:var(--bd);border-radius:2px;overflow:hidden;margin-top:10px;display:none}
+.scan-prog-fill{height:100%;background:linear-gradient(90deg,var(--g),var(--p));border-radius:2px;transition:width .3s}
+
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:10px 18px;border-radius:12px;font-size:14px;font-weight:700;
+  cursor:pointer;border:1px solid var(--bd);background:rgba(255,255,255,.06);
+  color:var(--tx);transition:all .15s;white-space:nowrap;font-family:inherit;
+}
+.btn:hover{background:rgba(0,212,170,.1);border-color:var(--bd2);color:var(--g)}
+.btn:active{transform:scale(.96)}
+.btn:disabled{opacity:.4;cursor:default;transform:none}
+.btn.pr{background:var(--g);color:#07090f;border-color:transparent;font-weight:800}
+.btn.pr:hover{background:#00ecc0;color:#07090f}
+.btn.sm{padding:7px 13px;font-size:12px;border-radius:9px}
+.btn.dn{color:var(--r);border-color:rgba(248,113,113,.2)}
+.btn.dn:hover{background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.35)}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ── Tags ── */
+.tag{
+  display:inline-flex;align-items:center;padding:2px 8px;
+  border-radius:999px;font-size:11px;font-weight:600;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+  color:var(--mu);white-space:nowrap;
+}
+.tag.g{color:var(--g);border-color:rgba(0,212,170,.25);background:rgba(0,212,170,.08)}
+.tag.r{color:var(--r);border-color:rgba(248,113,113,.25);background:rgba(248,113,113,.08)}
+.tag.y{color:var(--y);border-color:rgba(251,191,36,.25);background:rgba(251,191,36,.08)}
+.tag.b{color:var(--b);border-color:rgba(96,165,250,.25);background:rgba(96,165,250,.08)}
+.tag.p{color:var(--p);border-color:rgba(167,139,250,.25);background:rgba(167,139,250,.08)}
+
+/* ── Trade cards ── */
+.trade-list{display:grid;gap:10px}
+.tcard{background:var(--s1);border:1px solid var(--bd);border-radius:var(--radius);overflow:hidden}
+.tcard-accent{height:3px}
+.tcard-accent.long{background:linear-gradient(90deg,var(--g) 0%,transparent 70%)}
+.tcard-accent.short{background:linear-gradient(90deg,var(--r) 0%,transparent 70%)}
+.tcard-body{padding:14px}
+.tcard-row1{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.tcard-left{flex:1;min-width:0}
+.tcard-right{flex-shrink:0;text-align:right}
+.tc-name{font-size:17px;font-weight:900;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.tc-name a{color:var(--tx)}
+.tc-pnl{font-size:22px;font-weight:900;letter-spacing:-.04em;line-height:1.1}
+.tc-pnl-s{font-size:12px;color:var(--mu);margin-top:2px}
+.tc-meta{display:flex;flex-wrap:wrap;gap:5px 14px;margin-top:8px;font-size:12px;color:var(--mu)}
+.tc-meta strong{color:var(--tx);font-weight:700}
+.tc-prices{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--bd);
+}
+.tp-item .tpl{font-size:10px;color:var(--mu);font-weight:700;text-transform:uppercase}
+.tp-item .tpv{font-size:13px;font-weight:700;margin-top:2px}
+.tcard-actions{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px 14px}
+
+/* ── Add trade form ── */
+.form-sheet{
+  display:none;background:var(--s1);border:1px solid var(--bd);
+  border-radius:20px;overflow:hidden;margin-bottom:14px;
+}
+.form-sheet.open{display:block}
+.fs-head{
+  padding:15px 16px;font-size:15px;font-weight:800;
+  border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.fs-body{padding:14px 16px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:14px}
+.form-err{font-size:12px;color:var(--r);margin-left:6px}
+
+/* ── BTC ── */
+.btc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px}
+.btc-card{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:14px}
+.btc-lb{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--mu);margin-bottom:6px}
+.btc-vl{font-size:22px;font-weight:900;letter-spacing:-.04em;line-height:1.1}
+.btc-sub{font-size:11px;color:var(--mu);margin-top:4px}
+.rbar{height:4px;background:var(--bd);border-radius:2px;margin-top:8px;overflow:hidden}
+.rbar-fill{height:100%;border-radius:2px;transition:width .5s}
+
+/* ── Charts ── */
+.vol-chart{display:flex;align-items:flex-end;gap:2px;height:68px;padding-top:6px}
+.vb{flex:1;border-radius:2px 2px 0 0;min-width:0;opacity:.8}
+.vb:hover{opacity:1}
+
+/* ── Notice ── */
+.notice{padding:12px 14px;border-radius:12px;font-size:13px}
+.notice.warn{border-left:3px solid var(--y);background:rgba(251,191,36,.07);color:#fde68a}
+.notice.info{border-left:3px solid var(--b);background:rgba(96,165,250,.07);color:#bfdbfe}
+.notice.ok{border-left:3px solid var(--g);background:rgba(0,212,170,.07);color:#99f6e4}
+
+/* ── Loader ── */
+.ld{
+  display:inline-block;width:14px;height:14px;
+  border:2px solid rgba(255,255,255,.1);border-top-color:var(--g);
+  border-radius:50%;animation:spin .6s linear infinite;
+  vertical-align:middle;margin-right:5px;flex-shrink:0;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Misc ── */
+.sep{height:1px;background:var(--bd);margin:16px 0}
+.slbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--mu);margin:16px 0 10px}
+.stats-row{display:flex;flex-wrap:wrap;gap:5px 16px;font-size:13px;color:var(--mu);margin-bottom:14px}
+.stats-row b{color:var(--tx);font-weight:700}
+.empty{text-align:center;padding:40px 20px;color:var(--mu)}
+.empty .ei{font-size:38px;margin-bottom:10px}
+.score-bar{display:flex;align-items:center;gap:6px}
+.score-fill{height:3px;border-radius:2px;background:var(--g);opacity:.8}
+.green{color:var(--g)!important}.red{color:var(--r)!important}
+.yellow{color:var(--y)!important}.muted{color:var(--mu)!important}
+.bold{font-weight:800}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* ── Responsive ── */
+@media(min-width:640px){
+  .bnav{display:none}
+  body{padding-bottom:0}
+  .content{padding:0 20px 24px}
+  .sig-mobile{display:none}
+}
+@media(max-width:639px){
+  .dtabs{display:none}
+  .sig-desktop{display:none}
+  .scan-filters{grid-template-columns:1fr 1fr}
+  .two-col{grid-template-columns:1fr}
+  .btc-grid{grid-template-columns:repeat(2,1fr)}
+  #stxt{max-width:110px}
+}
+@media(max-width:420px){
+  .form-grid{grid-template-columns:1fr 1fr}
+  .tc-prices{grid-template-columns:repeat(3,1fr)}
+}
   </style>
 </head>
 <body>
-  <header>
-    <div>
-      <div class="pill">🌙 MoonSniper Improved · Dashboard</div>
-      <h1>交易訊號驗證儀表板</h1>
-      <div class="subtitle">讀取 MoonSniper 自己產生的 <code>data/dashboard_state.json</code>，展示已重算的 PnL、TP/SL 驗證、風險曝險與資料品質。這是研究與紙交易 dashboard，不是交易建議。</div>
-      <div id="status" class="statusline">初始化中…</div>
-    </div>
-    <div class="toolbar">
-      <button id="refreshBtn">🔄 重新整理</button>
-      <a class="pill" href="https://github.com/Hsiao0809/moonsniper">GitHub</a>
-      <a class="pill" href="https://hsiao0809.github.io/moon-sniper/">原版</a>
-    </div>
-  </header>
+<div id="app">
 
-  <main>
-    <section class="grid cards">
-      <div class="card"><div class="label">潛力幣種</div><div id="kSignals" class="value">—</div></div>
-      <div class="card"><div class="label">開倉 / 平倉</div><div id="kTrades" class="value">—</div></div>
-      <div class="card"><div class="label">估計權益</div><div id="kEquity" class="value">—</div></div>
-      <div class="card"><div class="label">未實現 PnL</div><div id="kUnreal" class="value">—</div></div>
-      <div class="card"><div class="label">驗證異常</div><div id="kInvalid" class="value">—</div></div>
-      <div class="card"><div class="label">理論 SL 風險</div><div id="kRisk" class="value">—</div></div>
-    </section>
+<!-- Header -->
+<header class="hdr">
+  <div class="logo">🌙 Moon<em>Sniper</em></div>
+  <div class="hdr-right">
+    <div class="status-wrap">
+      <div id="dot"></div>
+      <div id="stxt">初始化中…</div>
+    </div>
+    <button class="ib" id="refreshBtn" title="重新整理">↻</button>
+    <a class="gh" href="https://github.com/Hsiao0809/moonsniper" target="_blank">GitHub</a>
+  </div>
+</header>
 
-    <section class="panel">
-      <div class="tabs">
-        <button class="tab active" data-tab="signals">📡 潛力幣種</button>
-        <button class="tab" data-tab="trades">📊 紙交易驗證</button>
-        <button class="tab" data-tab="risk">🛡️ 風險與資料品質</button>
-        <button class="tab" data-tab="design">🧠 改良設計</button>
+<!-- KPI strip -->
+<div class="kpi-strip">
+  <div class="kpi"><div class="lb">潛力幣種</div><div id="kSignals" class="vl">—</div></div>
+  <div class="kpi"><div class="lb">帳戶餘額</div><div id="kBalance" class="vl">—</div></div>
+  <div class="kpi"><div class="lb">開倉/平倉</div><div id="kTrades" class="vl">—</div></div>
+  <div class="kpi"><div class="lb">勝率</div><div id="kWinRate" class="vl">—</div></div>
+  <div class="kpi"><div class="lb">已實現</div><div id="kRealized" class="vl">—</div></div>
+  <div class="kpi"><div class="lb">未實現</div><div id="kUnrealized" class="vl">—</div></div>
+  <div class="kpi"><div class="lb">總交易數</div><div id="kTotal" class="vl">—</div></div>
+</div>
+
+<!-- Content -->
+<div class="content">
+  <!-- Desktop tabs -->
+  <div class="dtabs">
+    <button class="dt active" data-tab="signals">📡 潛力幣種</button>
+    <button class="dt" data-tab="scan">🔍 即時掃描</button>
+    <button class="dt" data-tab="trades">📊 紙交易</button>
+    <button class="dt" data-tab="btc">₿ BTC 微結構</button>
+  </div>
+
+  <!-- ── Signals ── -->
+  <div id="tab-signals" class="tp active">
+    <div class="sh">
+      <h2>📡 潛力幣種訊號</h2>
+      <span id="signalsTs" class="ts"></span>
+    </div>
+    <div id="signalsNotice" style="margin-bottom:10px"></div>
+    <!-- Mobile cards -->
+    <div class="sig-mobile">
+      <div id="signalsMobile" class="card-list"></div>
+    </div>
+    <!-- Desktop table -->
+    <div class="sig-desktop">
+      <div class="card-tbl"><div class="tbl-sc"><table>
+        <thead><tr>
+          <th>#</th><th>幣種</th><th class="r">掃描價</th><th class="r">即時價</th>
+          <th class="r">掃描至今</th><th class="r">24h</th><th class="r">成交量</th>
+          <th class="r">總分</th><th>分項</th><th>訊號</th>
+        </tr></thead>
+        <tbody id="signalsBody"><tr><td colspan="10" class="muted">載入中…</td></tr></tbody>
+      </table></div></div>
+    </div>
+  </div>
+
+  <!-- ── Scan ── -->
+  <div id="tab-scan" class="tp">
+    <div class="sh">
+      <h2>🔍 即時掃描</h2>
+      <span id="scanTs" class="ts"></span>
+    </div>
+    <div class="scan-box">
+      <div class="scan-filters">
+        <div class="f"><label>最小漲幅 %</label><input type="number" id="scanMinChange" value="3" min="0" max="50" step="0.5" inputmode="decimal"/></div>
+        <div class="f"><label>最大漲幅 %</label><input type="number" id="scanMaxChange" value="20" min="1" max="100" step="0.5" inputmode="decimal"/></div>
+        <div class="f"><label>最低量 U</label><input type="number" id="scanMinVol" value="500000" step="100000" inputmode="numeric"/></div>
       </div>
+      <button class="btn pr" id="scanBtn" style="width:100%;font-size:15px;padding:13px">▶ 開始掃描</button>
+      <div id="scanProg" class="scan-prog"><div id="scanProgFill" class="scan-prog-fill" style="width:0%"></div></div>
+      <div id="scanStatus" class="muted" style="font-size:12px;margin-top:6px"></div>
+    </div>
+    <!-- Mobile -->
+    <div class="sig-mobile"><div id="scanMobile" class="card-list"></div></div>
+    <!-- Desktop -->
+    <div class="sig-desktop">
+      <div class="card-tbl"><div class="tbl-sc"><table>
+        <thead><tr>
+          <th>#</th><th>幣種</th><th class="r">即時價</th><th class="r">24h</th>
+          <th class="r">成交量</th><th class="r">總分</th><th>分項</th><th>訊號</th><th></th>
+        </tr></thead>
+        <tbody id="scanBody"><tr><td colspan="9" class="muted">尚未掃描，按「開始掃描」。</td></tr></tbody>
+      </table></div></div>
+    </div>
+  </div>
 
-      <div id="tab-signals" class="tab-page active">
-        <h2>📡 潛力幣種訊號</h2>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>#</th><th>幣種</th><th>掃描價</th><th>即時價</th><th>掃描至今</th><th>24h</th><th>量</th><th>分數</th><th>組成</th><th>訊號</th></tr></thead>
-            <tbody id="signalsBody"><tr><td colspan="10">載入中…</td></tr></tbody>
-          </table>
+  <!-- ── Trades ── -->
+  <div id="tab-trades" class="tp">
+    <div class="sh">
+      <h2>📊 紙交易</h2>
+      <button class="btn sm" id="addTradeToggle">＋ 新增</button>
+    </div>
+    <!-- Form sheet -->
+    <div class="form-sheet" id="addTradeForm">
+      <div class="fs-head">
+        <span>新增紙交易</span>
+        <button class="ib" id="cancelTrade" style="width:28px;height:28px;font-size:14px">✕</button>
+      </div>
+      <div class="fs-body">
+        <div class="form-grid">
+          <div class="f" style="grid-column:span 2"><label>幣種 (如 BTCUSDT)</label><input type="text" id="ftSymbol" placeholder="BTCUSDT" autocapitalize="characters"/></div>
+          <div class="f"><label>方向</label><select id="ftDir"><option value="long">做多 Long</option><option value="short">做空 Short</option></select></div>
+          <div class="f"><label>進場價</label><input type="number" id="ftEntry" placeholder="0.00" step="any" inputmode="decimal"/></div>
+          <div class="f"><label>保證金 U</label><input type="number" id="ftMargin" placeholder="10" step="any" inputmode="decimal"/></div>
+          <div class="f"><label>槓桿</label><input type="number" id="ftLeverage" value="1" min="1" max="100" inputmode="numeric"/></div>
+          <div class="f"><label>止損 SL</label><input type="number" id="ftSL" placeholder="0.00" step="any" inputmode="decimal"/></div>
+          <div class="f"><label>TP1</label><input type="number" id="ftTP1" placeholder="0.00" step="any" inputmode="decimal"/></div>
+          <div class="f"><label>TP2</label><input type="number" id="ftTP2" placeholder="0.00" step="any" inputmode="decimal"/></div>
+          <div class="f"><label>評分</label><input type="number" id="ftScore" placeholder="0–100" min="0" max="100" inputmode="numeric"/></div>
+          <div class="f" style="grid-column:span 2"><label>備註</label><input type="text" id="ftNote" placeholder="選填"/></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="btn pr" id="submitTrade">確認新增</button>
+          <span id="formError" class="form-err"></span>
         </div>
       </div>
+    </div>
+    <div id="tradeStats" class="stats-row"></div>
+    <div class="slbl">開倉中</div>
+    <div id="openTrades" class="trade-list"></div>
+    <div class="slbl" style="margin-top:18px">已平倉</div>
+    <div id="closedTrades" class="trade-list"></div>
+  </div>
 
-      <div id="tab-trades" class="tab-page">
-        <h2>📊 紙交易驗證</h2>
-        <div class="notice">重點：這裡不直接信任原始 stats，而是用 entry/current/exit 重新計算 PnL，並檢查 TP/SL/time-stop 條件。</div>
-        <div id="tradeList" class="trade-list" style="margin-top:14px"></div>
+  <!-- ── BTC ── -->
+  <div id="tab-btc" class="tp">
+    <div class="sh">
+      <h2>₿ BTC 微結構</h2>
+      <span id="btcTs" class="ts"></span>
+      <button class="btn sm" id="btcRefreshBtn">↻ 更新</button>
+    </div>
+    <div id="btcLoading" class="muted" style="font-size:13px"></div>
+    <div id="btcGrid" class="btc-grid"></div>
+    <div class="sep"></div>
+    <div class="two-col">
+      <div>
+        <div class="slbl" style="margin-top:0">1h 成交量（最近 24 根）</div>
+        <div id="btcVolChart"></div>
       </div>
-
-      <div id="tab-risk" class="tab-page">
-        <h2>🛡️ 風險與資料品質</h2>
-        <div class="two-col">
-          <div>
-            <h3>驗證問題</h3>
-            <div id="issuesList" class="trade-list"></div>
-          </div>
-          <div>
-            <h3>曝險摘要</h3>
-            <div id="riskSummary" class="trade-list"></div>
-          </div>
-        </div>
+      <div>
+        <div class="slbl" style="margin-top:0">訂單簿深度（前 10 檔）</div>
+        <div id="btcDepthChart"></div>
       </div>
+    </div>
+  </div>
 
-      <div id="tab-design" class="tab-page">
-        <h2>🧠 改良版設計原則</h2>
-        <ul>
-          <li>Raw records、computed metrics、dashboard state 分離。</li>
-          <li>任何績效統計都必須先通過 TP/SL/time-stop/PnL 驗證。</li>
-          <li>同時間批量進場視為同一 signal cluster，不視為完全分散。</li>
-          <li>每筆交易要保存 signal snapshot 與 BTC/regime snapshot。</li>
-          <li>尚未完成回測、紙交易與覆盤前，不宣稱策略有 edge。</li>
-        </ul>
-        <p><a href="./docs/learning-from-original-moon-sniper.md">查看：原版 Moon Sniper 學習筆記</a></p>
-      </div>
-    </section>
+</div><!-- /content -->
 
-    <div class="footer">資料來源：MoonSniper 自己的 data/dashboard_state.json。上游來源與產生時間寫在 provenance；若資料 stale，本 dashboard 應視為不可用。</div>
-  </main>
+<!-- Bottom nav (mobile) -->
+<nav class="bnav">
+  <button class="bn active" data-tab="signals"><span class="ic">📡</span>訊號</button>
+  <button class="bn" data-tab="scan"><span class="ic">🔍</span>掃描</button>
+  <button class="bn" data-tab="trades"><span class="ic">📊</span>紙交易</button>
+  <button class="bn" data-tab="btc"><span class="ic">₿</span>BTC</button>
+</nav>
 
+</div><!-- /app -->
 <script>
-const DASHBOARD_STATE_URL = './data/dashboard_state.json';
-const fmtU = n => (Number(n) >= 0 ? '+' : '') + Number(n || 0).toFixed(2) + 'U';
-const fmtPct = n => (Number(n) >= 0 ? '+' : '') + Number(n || 0).toFixed(2) + '%';
-const fmtPrice = n => { n = Number(n || 0); return '$' + n.toFixed(n < 1 ? 6 : n < 100 ? 4 : 2); };
-const fmtVol = v => v >= 1e9 ? (v/1e9).toFixed(2)+'B' : v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(1)+'K' : String(Math.round(v || 0));
-let state = null;
+// ── Constants ──
+const BINANCE='https://api.binance.com/api/v3';
+const FAPI='https://fapi.binance.com/fapi/v1';
+const FAPI_DATA='https://fapi.binance.com/futures/data';
+const STABLES=new Set(['USDT','USDC','BUSD','DAI','TUSD','USDP','FDUSD','PYUSD','USDS','AEUR','EURI']);
+const TRADES_KEY='moonsniper_trades_v2';
+const BALANCE_KEY='moonsniper_balance_v1';
+const SIGNALS_URL='./data/signals.json';
+const REFRESH_MS=30000;
 
-function setStatus(s) { document.getElementById('status').textContent = s; }
-function tagClass(t) { return /停損|invalid|overdue|錯|賣壓/.test(t) ? 'bad' : /反轉|注意|stale|time/.test(t) ? 'warn' : 'good'; }
+// ── State ──
+let liveSignals=[], scanResults=[], livePrices={}, refreshTimer=null;
 
-async function refresh() {
-  try {
-    setStatus('讀取 MoonSniper 自己的 dashboard_state.json…');
-    const r = await fetch(DASHBOARD_STATE_URL + '?_=' + Date.now());
-    if (!r.ok) throw new Error('dashboard_state.json HTTP ' + r.status);
-    state = await r.json();
-    render();
-    setStatus(`已更新：訊號 ${state.metrics.signal_count}，交易 ${state.metrics.total_trades}，驗證異常 ${state.metrics.invalid_count}。資料產生時間：${new Date(state.generated_at).toLocaleString('zh-TW')}`);
-  } catch (e) {
-    console.error(e);
-    setStatus('載入失敗：' + e.message + '。請先執行 scripts/build_dashboard_state.py 產生 data/dashboard_state.json。');
+// ── Format ──
+const fU=n=>(Number(n)>=0?'+':'')+Number(n||0).toFixed(2)+' U';
+const fP=n=>(Number(n)>=0?'+':'')+Number(n||0).toFixed(2)+'%';
+const fPrice=n=>{
+  n=Number(n||0); if(!n) return '—';
+  if(n<.000001) return '$'+n.toExponential(2);
+  if(n<.0001)   return '$'+n.toFixed(8);
+  if(n<.01)     return '$'+n.toFixed(6);
+  if(n<1)       return '$'+n.toFixed(4);
+  if(n<100)     return '$'+n.toFixed(3);
+  if(n<10000)   return '$'+n.toFixed(2);
+  return '$'+n.toLocaleString('en',{maximumFractionDigits:0});
+};
+const fVol=v=>{
+  v=Number(v||0);
+  if(v>=1e9) return (v/1e9).toFixed(2)+'B';
+  if(v>=1e6) return (v/1e6).toFixed(1)+'M';
+  if(v>=1e3) return (v/1e3).toFixed(1)+'K';
+  return String(Math.round(v));
+};
+const cp=n=>Number(n)>=0?'green':'red';
+const tsNow=()=>new Date().toLocaleString('zh-TW');
+function setStatus(msg,state='live'){
+  document.getElementById('stxt').textContent=msg;
+  const d=document.getElementById('dot');
+  d.className=state;
+}
+
+// ── Binance API ──
+async function bFetch(path,p={}){
+  const u=new URL(BINANCE+path);
+  Object.entries(p).forEach(([k,v])=>u.searchParams.set(k,v));
+  const r=await fetch(u);
+  if(!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+const fetchKlines=(sym,iv='1h',n=24)=>bFetch('/klines',{symbol:sym,interval:iv,limit:n});
+const fetchDepth=(sym,n=50)=>bFetch('/depth',{symbol:sym,limit:n});
+async function fetchPrices(syms){
+  if(!syms.length) return {};
+  try{
+    const r=await fetch(`${BINANCE}/ticker/price?symbols=${encodeURIComponent(JSON.stringify(syms))}`);
+    if(!r.ok) throw 0;
+    const d=await r.json();
+    const o={};for(const x of d) o[x.symbol]=parseFloat(x.price);return o;
+  } catch {
+    const o={};
+    for(let i=0;i<syms.length;i+=20){
+      await Promise.all(syms.slice(i,i+20).map(async s=>{
+        try{const d=await bFetch('/ticker/price',{symbol:s});o[s]=parseFloat(d.price);}catch{}
+      }));
+    }
+    return o;
   }
 }
 
-function render() {
-  const m = state.metrics;
-  document.getElementById('kSignals').textContent = m.signal_count;
-  document.getElementById('kTrades').textContent = `${m.open_count} / ${m.closed_count}`;
-  document.getElementById('kEquity').textContent = Number(m.estimated_equity_usdt).toFixed(2) + 'U';
-  document.getElementById('kUnreal').textContent = fmtU(m.open_pnl_usdt);
-  document.getElementById('kUnreal').className = 'value ' + (m.open_pnl_usdt >= 0 ? 'green' : 'red');
-  document.getElementById('kInvalid').textContent = m.invalid_count;
-  document.getElementById('kInvalid').className = 'value ' + (m.invalid_count ? 'red' : 'green');
-  document.getElementById('kRisk').textContent = Number(m.theoretical_sl_risk_usdt).toFixed(2) + 'U';
-  renderSignals();
+// ── Scoring ──
+function avg(a){return a.length?a.reduce((s,x)=>s+x,0)/a.length:0}
+function scoreVol(t,kl){
+  const v=parseFloat(t.quoteVolume);
+  const exp=avg(kl.map(k=>parseFloat(k[7])))*24;
+  const r=exp>0?v/exp:0;
+  let s=0;
+  if(r>=6)s=30;else if(r>=4)s=24;else if(r>=2.5)s=17;else if(r>=1.5)s=10;else if(r>=1)s=4;
+  return{score:s,ratio:+r.toFixed(1)};
+}
+function scoreMom(c){return c>=15?25:c>=10?20:c>=7?15:c>=5?10:c>=3?5:0}
+function scoreBO(kl){
+  if(kl.length<12) return 0;
+  const rc=avg(kl.slice(-6).map(k=>parseFloat(k[4])));
+  const pv=avg(kl.slice(-12,-6).map(k=>parseFloat(k[4])));
+  const p=pv>0?(rc/pv-1)*100:0;
+  return p>=6?20:p>=3.5?14:p>=1.5?7:0;
+}
+function scoreOB(depth){
+  if(!depth?.bids?.length) return{score:0,bidVol:0,askVol:0,ratio:1};
+  const bv=depth.bids.slice(0,20).reduce((s,[p,q])=>s+parseFloat(p)*parseFloat(q),0);
+  const av=depth.asks.slice(0,20).reduce((s,[p,q])=>s+parseFloat(p)*parseFloat(q),0);
+  const r=av>0?bv/av:99;
+  return{score:r>=2?15:r>=1.5?10:r>=1.2?5:0,bidVol:bv,askVol:av,ratio:+r.toFixed(2)};
+}
+function scoreSM(kl){
+  if(kl.length<12) return 0;
+  const rv=avg(kl.slice(-3).map(k=>parseFloat(k[5])));
+  const pv=avg(kl.slice(-12,-3).map(k=>parseFloat(k[5])));
+  const sp=pv>0?rv/pv:0;
+  const up=parseFloat(kl[kl.length-1][4])>parseFloat(kl[kl.length-4][4]);
+  return sp>=3&&up?10:sp>=2?5:0;
+}
+function scoreCS(kl){
+  if(kl.length<10) return 0;
+  const cls=kl.slice(-10).map(k=>parseFloat(k[4]));
+  const m=avg(cls); if(!m) return 0;
+  const std=Math.sqrt(avg(cls.map(c=>(c-m)**2)));
+  const cv=std/m;
+  return cv<.01?10:cv<.02?7:cv<.04?4:0;
+}
+function computeScore(ticker,kl,depth){
+  const ch=parseFloat(ticker.priceChangePercent);
+  const{score:vs,ratio:vr}=scoreVol(ticker,kl);
+  const ms=scoreMom(ch),bs=scoreBO(kl);
+  const{score:os,bidVol,askVol,ratio:obr}=scoreOB(depth);
+  const sms=scoreSM(kl),cs=scoreCS(kl);
+  const pen=ch>=18?-12:ch>=15?-6:0;
+  const total=Math.max(0,Math.min(100,vs+ms+bs+os+sms+cs+pen));
+  const tags=[];
+  if(vr>=3)            tags.push({t:'📊 量爆增',c:'g'});
+  if(ch>=10)           tags.push({t:'🔥 強勢',c:'g'});
+  else if(ch>=5)       tags.push({t:'⚡ 上漲中',c:'g'});
+  if(bs>=14)           tags.push({t:'📈 突破壓力',c:'g'});
+  if(obr>=1.3)         tags.push({t:'📗 買盤強勁',c:'g'});
+  if(obr<.8)           tags.push({t:'📕 賣壓',c:'r'});
+  if(sms>=8)           tags.push({t:'💰 聰明錢',c:'b'});
+  if(cs>=7)            tags.push({t:'🛡️ 有支撐',c:'y'});
+  if(ch>=16)           tags.push({t:'🔄 可能反轉',c:'y'});
+  return{total,volume:vs,volume_ratio:vr,momentum:ms,breakout:bs,
+         orderbook:os,smart_money:sms,consolidation:cs,overbought_penalty:pen,
+         bid_vol_usdt:bidVol,ask_vol_usdt:askVol,bid_ask_ratio:obr,tags};
+}
+
+// ── Score ring SVG ──
+function scoreRing(score){
+  const r=17,circ=2*Math.PI*r;
+  const fill=circ*(score/100);
+  const col=score>=70?'var(--g)':score>=50?'var(--y)':'var(--r)';
+  return `<div class="ring-wrap">
+    <svg viewBox="0 0 40 40"><circle class="rtrack" cx="20" cy="20" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="3"/>
+    <circle cx="20" cy="20" r="${r}" fill="none" stroke="${col}" stroke-width="3" stroke-linecap="round"
+      stroke-dasharray="${fill} ${circ}" stroke-dashoffset="0" transform="rotate(-90,20,20)"/></svg>
+    <div class="rn" style="color:${col}">${score}</div></div>`;
+}
+
+// ── Signal card (mobile) ──
+function sigCard(sym,base,scanP,liveP,change24h,vol,scores,tags,idx){
+  const fromScan=scanP?(liveP/scanP-1)*100:0;
+  const sc=scores||{};
+  const tagsHtml=(tags||[]).map(t=>{
+    const c=/賣壓/.test(t)?'r':/反轉|注意/.test(t)?'y':'g';
+    return `<span class="tag ${c}">${t}</span>`;
+  }).join('');
+  const bdHtml=`<span class="tag" style="font-size:10px">量${sc.volume??'-'}</span>
+    <span class="tag" style="font-size:10px">動${sc.momentum??'-'}</span>
+    <span class="tag" style="font-size:10px">突${sc.breakout??'-'}</span>
+    <span class="tag" style="font-size:10px">OB${sc.orderbook??'-'}</span>`;
+  return `<div class="sig-card">
+    <div class="sig-top">
+      <div>
+        <div class="muted" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">#${idx+1}</div>
+        <div class="sig-name"><a href="https://www.tradingview.com/chart/?symbol=BINANCE:${sym}" target="_blank">${base}</a></div>
+      </div>
+      ${scoreRing(sc.total??0)}
+    </div>
+    <div class="sig-grid">
+      <div class="sig-stat"><div class="sl">掃描價</div><div class="sv">${fPrice(scanP)}</div></div>
+      <div class="sig-stat"><div class="sl">即時價</div><div class="sv">${fPrice(liveP)}</div></div>
+      <div class="sig-stat"><div class="sl">掃描至今</div><div class="sv ${cp(fromScan)}">${fP(fromScan)}</div></div>
+      <div class="sig-stat"><div class="sl">24h</div><div class="sv ${cp(change24h)}">${fP(change24h)}</div></div>
+      <div class="sig-stat"><div class="sl">成交量</div><div class="sv">${fVol(vol)}</div></div>
+      <div class="sig-stat"><div class="sl">量比</div><div class="sv">${sc.volume_ratio??'—'}x</div></div>
+    </div>
+    <div class="sig-tags">${tagsHtml}</div>
+    <div class="sig-breakdown">${bdHtml}</div>
+  </div>`;
+}
+
+// ── Scan card (mobile) ──
+function scanCard(ticker,scores,idx){
+  const base=ticker.symbol.replace('USDT','');
+  const price=parseFloat(ticker.lastPrice);
+  const ch=parseFloat(ticker.priceChangePercent);
+  const tagsHtml=scores.tags.map(({t,c})=>`<span class="tag ${c}">${t}</span>`).join('');
+  const bdHtml=`<span class="tag" style="font-size:10px">量${scores.volume}</span>
+    <span class="tag" style="font-size:10px">動${scores.momentum}</span>
+    <span class="tag" style="font-size:10px">突${scores.breakout}</span>
+    <span class="tag" style="font-size:10px">OB${scores.orderbook}</span>`;
+  return `<div class="sig-card">
+    <div class="sig-top">
+      <div>
+        <div class="muted" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">#${idx+1}</div>
+        <div class="sig-name"><a href="https://www.tradingview.com/chart/?symbol=BINANCE:${ticker.symbol}" target="_blank">${base}</a></div>
+      </div>
+      ${scoreRing(scores.total)}
+    </div>
+    <div class="sig-grid">
+      <div class="sig-stat"><div class="sl">即時價</div><div class="sv">${fPrice(price)}</div></div>
+      <div class="sig-stat"><div class="sl">24h</div><div class="sv ${cp(ch)}">${fP(ch)}</div></div>
+      <div class="sig-stat"><div class="sl">成交量</div><div class="sv">${fVol(ticker.quoteVolume)}</div></div>
+    </div>
+    <div class="sig-tags">${tagsHtml}</div>
+    <div class="sig-breakdown">${bdHtml}</div>
+    <div style="margin-top:10px">
+      <button class="btn sm pr" style="width:100%" onclick="openAddTradeFromScan('${ticker.symbol}','${base}',${price})">＋ 加入紙倉</button>
+    </div>
+  </div>`;
+}
+
+// ── Load signals ──
+async function loadSignals(){
+  const notice=document.getElementById('signalsNotice');
+  const body=document.getElementById('signalsBody');
+  const mobile=document.getElementById('signalsMobile');
+  const ts=document.getElementById('signalsTs');
+  try{
+    const r=await fetch(SIGNALS_URL+'?_='+Date.now());
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data=await r.json();
+    liveSignals=data.signals||[];
+    ts.textContent='掃描：'+(data.scanned_at?new Date(data.scanned_at).toLocaleString('zh-TW'):'未知');
+    const syms=liveSignals.map(s=>s.symbol);
+    if(syms.length){const p=await fetchPrices(syms);Object.assign(livePrices,p);}
+    // Desktop table
+    body.innerHTML=liveSignals.map((s,i)=>{
+      const sc=s.scores||{};
+      const sp=parseFloat(s.price||0);
+      const lp=livePrices[s.symbol]||sp;
+      const fs=sp?(lp/sp-1)*100:0;
+      const tags=(s.tags||[]).map(t=>{
+        const c=/賣壓/.test(t)?'r':/反轉/.test(t)?'y':'g';
+        return `<span class="tag ${c}">${t}</span>`;
+      }).join('');
+      const bd=`<span class="muted" style="font-size:11px">量${sc.volume??'-'} 動${sc.momentum??'-'} 突${sc.breakout??'-'} OB${sc.orderbook??'-'}</span>`;
+      return `<tr>
+        <td class="muted">${i+1}</td>
+        <td><a href="https://www.tradingview.com/chart/?symbol=BINANCE:${s.symbol}" target="_blank">${s.base||s.symbol}</a></td>
+        <td class="r">${fPrice(sp)}</td><td class="r">${fPrice(lp)}</td>
+        <td class="r ${cp(fs)}">${fP(fs)}</td>
+        <td class="r ${cp(s.price_change_24h)}">${fP(s.price_change_24h)}</td>
+        <td class="r">${fVol(s.volume_24h_usdt)}</td>
+        <td class="r bold">${sc.total??'—'}</td>
+        <td>${bd}</td>
+        <td><div style="display:flex;flex-wrap:wrap;gap:3px">${tags}</div></td>
+      </tr>`;
+    }).join('')||'<tr><td colspan="10" class="muted">沒有資料</td></tr>';
+    // Mobile cards
+    mobile.innerHTML=liveSignals.map((s,i)=>sigCard(
+      s.symbol,s.base||s.symbol.replace('USDT',''),
+      parseFloat(s.price||0),livePrices[s.symbol]||parseFloat(s.price||0),
+      s.price_change_24h,s.volume_24h_usdt,s.scores,s.tags,i
+    )).join('');
+    document.getElementById('kSignals').textContent=liveSignals.length;
+    notice.innerHTML='';
+  } catch(e){
+    notice.innerHTML=`<div class="notice warn">無法讀取 signals.json（${e.message}）。請先執行掃描器或到「即時掃描」頁手動掃描。</div>`;
+    body.innerHTML='<tr><td colspan="10" class="muted">沒有資料</td></tr>';
+    mobile.innerHTML='';
+    document.getElementById('kSignals').textContent='0';
+  }
+}
+
+// ── Live scan ──
+async function runLiveScan(){
+  const btn=document.getElementById('scanBtn');
+  const body=document.getElementById('scanBody');
+  const mobile=document.getElementById('scanMobile');
+  const status=document.getElementById('scanStatus');
+  const ts=document.getElementById('scanTs');
+  const prog=document.getElementById('scanProg');
+  const progFill=document.getElementById('scanProgFill');
+  const minC=parseFloat(document.getElementById('scanMinChange').value)||3;
+  const maxC=parseFloat(document.getElementById('scanMaxChange').value)||20;
+  const minV=parseFloat(document.getElementById('scanMinVol').value)||500000;
+
+  btn.disabled=true;btn.textContent='掃描中…';
+  body.innerHTML=`<tr><td colspan="9"><span class="ld"></span>取得市場資料…</td></tr>`;
+  mobile.innerHTML=`<div class="notice info"><span class="ld"></span>取得市場資料…</div>`;
+  status.textContent='';prog.style.display='block';progFill.style.width='5%';
+
+  try{
+    status.innerHTML='<span class="ld"></span>取得所有 USDT 交易對…';
+    const tickers=await bFetch('/ticker/24hr').catch(()=>{ throw new Error('Binance API 無法連線'); });
+    progFill.style.width='15%';
+
+    const candidates=tickers.filter(t=>{
+      if(!t.symbol.endsWith('USDT')) return false;
+      const b=t.symbol.replace('USDT','');
+      if(STABLES.has(b)) return false;
+      const c=parseFloat(t.priceChangePercent);
+      return c>=minC&&c<=maxC&&parseFloat(t.quoteVolume)>=minV&&parseFloat(t.lastPrice)>1e-7;
+    });
+    candidates.sort((a,b)=>parseFloat(b.quoteVolume)-parseFloat(a.quoteVolume));
+    const top=candidates.slice(0,50);
+    status.innerHTML=`<span class="ld"></span>分析 ${top.length} 個候選幣種…`;
+
+    const results=[];
+    const BS=10;
+    for(let i=0;i<top.length;i+=BS){
+      const batch=top.slice(i,i+BS);
+      const bd=await Promise.all(batch.map(async ticker=>{
+        try{
+          const[kl,depth]=await Promise.all([fetchKlines(ticker.symbol,'1h',24),fetchDepth(ticker.symbol,50)]);
+          return{ticker,kl,depth};
+        }catch{return null;}
+      }));
+      results.push(...bd.filter(Boolean));
+      const pct=15+Math.round((Math.min(i+BS,top.length)/top.length)*75);
+      progFill.style.width=pct+'%';
+      status.innerHTML=`<span class="ld"></span>已分析 ${Math.min(i+BS,top.length)} / ${top.length}…`;
+    }
+
+    const scored=results.map(({ticker,kl,depth})=>({ticker,scores:computeScore(ticker,kl,depth)}));
+    scored.sort((a,b)=>b.scores.total-a.scores.total);
+    scanResults=scored;
+    scored.forEach(({ticker})=>{livePrices[ticker.symbol]=parseFloat(ticker.lastPrice);});
+    progFill.style.width='100%';
+
+    // Desktop
+    body.innerHTML=scored.map(({ticker:t,scores:sc},i)=>{
+      const base=t.symbol.replace('USDT','');
+      const price=parseFloat(t.lastPrice);
+      const ch=parseFloat(t.priceChangePercent);
+      const tags=sc.tags.map(({t,c})=>`<span class="tag ${c}">${t}</span>`).join('');
+      return `<tr>
+        <td class="muted">${i+1}</td>
+        <td><a href="https://www.tradingview.com/chart/?symbol=BINANCE:${t.symbol}" target="_blank">${base}</a></td>
+        <td class="r">${fPrice(price)}</td>
+        <td class="r ${cp(ch)}">${fP(ch)}</td>
+        <td class="r">${fVol(t.quoteVolume)}</td>
+        <td class="r">
+          <div class="score-bar"><span class="bold">${sc.total}</span>
+          <div class="score-fill" style="width:${sc.total}px"></div></div>
+        </td>
+        <td><span class="muted" style="font-size:11px">量${sc.volume} 動${sc.momentum} 突${sc.breakout} OB${sc.orderbook}</span></td>
+        <td><div style="display:flex;flex-wrap:wrap;gap:3px">${tags}</div></td>
+        <td><button class="btn sm" onclick="openAddTradeFromScan('${t.symbol}','${base}',${price})">＋ 紙倉</button></td>
+      </tr>`;
+    }).join('')||'<tr><td colspan="9" class="muted">無符合條件的幣種</td></tr>';
+
+    // Mobile
+    mobile.innerHTML=scored.map(({ticker,scores},i)=>scanCard(ticker,scores,i)).join('');
+
+    ts.textContent='掃描完成：'+tsNow();
+    status.textContent=`找到 ${scored.length} 個結果（從 ${candidates.length} 個候選篩選）`;
+    setTimeout(()=>{prog.style.display='none';},800);
+  } catch(e){
+    body.innerHTML=`<tr><td colspan="9" class="red">掃描失敗：${e.message}</td></tr>`;
+    mobile.innerHTML=`<div class="notice warn">掃描失敗：${e.message}</div>`;
+    prog.style.display='none';status.textContent='';
+  } finally{
+    btn.disabled=false;btn.textContent='▶ 開始掃描';
+  }
+}
+
+function openAddTradeFromScan(symbol,base,price){
+  switchTab('trades');
+  document.getElementById('addTradeForm').classList.add('open');
+  document.getElementById('addTradeToggle').textContent='✕ 取消';
+  document.getElementById('ftSymbol').value=symbol;
+  document.getElementById('ftEntry').value=price;
+}
+window.openAddTradeFromScan=openAddTradeFromScan;
+
+// ── Paper trades ──
+const loadTrades=()=>{try{return JSON.parse(localStorage.getItem(TRADES_KEY)||'[]');}catch{return[];}};
+const saveTrades=t=>localStorage.setItem(TRADES_KEY,JSON.stringify(t));
+const loadBalance=()=>parseFloat(localStorage.getItem(BALANCE_KEY)||'1000');
+const saveBalance=b=>localStorage.setItem(BALANCE_KEY,String(b));
+
+function calcPnL(t,price){
+  const pv=t.position_value,ep=t.entry_price;
+  if(!ep||!pv) return 0;
+  return t.direction==='long'?pv*(price/ep-1):pv*(1-price/ep);
+}
+
+async function refreshTradePrices(){
+  const trades=loadTrades();
+  const syms=[...new Set(trades.filter(t=>t.status==='open').map(t=>t.symbol))];
+  if(!syms.length) return;
+  try{const p=await fetchPrices(syms);Object.assign(livePrices,p);renderTrades();}catch{}
+}
+
+function renderTrades(){
+  const trades=loadTrades(),balance=loadBalance();
+  const open=trades.filter(t=>t.status==='open');
+  const closed=trades.filter(t=>t.status==='closed');
+  const realized=closed.reduce((s,t)=>s+(t.realized_pnl||0),0);
+  const unrealized=open.reduce((s,t)=>{const p=livePrices[t.symbol];return s+(p?calcPnL(t,p):0);},0);
+  const wins=closed.filter(t=>(t.realized_pnl||0)>0).length;
+  const wr=closed.length?(wins/closed.length*100).toFixed(1):'—';
+  const equity=balance+realized+unrealized;
+
+  // KPIs
+  document.getElementById('kBalance').textContent=balance.toFixed(2)+' U';
+  document.getElementById('kTrades').textContent=`${open.length} / ${closed.length}`;
+  document.getElementById('kWinRate').textContent=wr==='—'?'—':wr+'%';
+  document.getElementById('kRealized').textContent=realized.toFixed(2)+' U';
+  document.getElementById('kRealized').className='vl '+(realized>=0?'green':'red');
+  document.getElementById('kUnrealized').textContent=unrealized.toFixed(2)+' U';
+  document.getElementById('kUnrealized').className='vl '+(unrealized>=0?'green':'red');
+  document.getElementById('kTotal').textContent=trades.length;
+
+  document.getElementById('tradeStats').innerHTML=`
+    <span>帳戶餘額 <b>${balance.toFixed(2)} U</b></span>
+    <span>估計權益 <b>${equity.toFixed(2)} U</b></span>
+    <span>已實現 <b class="${realized>=0?'green':'red'}">${fU(realized)}</b></span>
+    <span>未實現 <b class="${unrealized>=0?'green':'red'}">${fU(unrealized)}</b></span>
+    <span>勝率 <b>${wr}${wr!=='—'?'%':''}</b></span>`;
+
+  // Open trades
+  const od=document.getElementById('openTrades');
+  if(!open.length){
+    od.innerHTML='<div class="notice info">目前沒有開倉中的紙交易。</div>';
+  } else {
+    od.innerHTML=open.map(t=>{
+      const lp=livePrices[t.symbol];
+      const pnl=lp?calcPnL(t,lp):null;
+      const pnlPct=lp&&t.entry_price?((lp/t.entry_price-1)*(t.direction==='short'?-100:100)).toFixed(2):null;
+      const slAlert=lp&&t.stop_loss_price&&lp<=t.stop_loss_price?'<span class="tag r">⚠ 止損觸發</span>':'';
+      const tp1hit=lp&&t.tp1_price&&lp>=t.tp1_price?'<span class="tag g">✓ TP1 達標</span>':'';
+      const risk=((t.position_value||0)*(1-(t.stop_loss_price||0)/(t.entry_price||1))).toFixed(2);
+      return `<div class="tcard">
+        <div class="tcard-accent ${t.direction}"></div>
+        <div class="tcard-body">
+          <div class="tcard-row1">
+            <div class="tcard-left">
+              <div class="tc-name">
+                ${t.direction==='long'?'🟢':'🔴'}
+                <a href="https://www.tradingview.com/chart/?symbol=BINANCE:${t.symbol}" target="_blank">${t.base||t.symbol}</a>
+                <span class="tag b">${t.direction.toUpperCase()} ×${t.leverage||1}</span>
+                ${slAlert}${tp1hit}
+              </div>
+              <div class="tc-meta">
+                <span>保證金 <strong>${(t.margin||0).toFixed(2)} U</strong></span>
+                <span>倉位 <strong>${(t.position_value||0).toFixed(2)} U</strong></span>
+                <span>風險 <strong>${risk} U</strong></span>
+                ${t.score!=null?`<span>評分 <strong>${t.score}</strong></span>`:''}
+              </div>
+              ${t.note?`<div class="muted" style="font-size:12px;margin-top:6px">${t.note}</div>`:''}
+            </div>
+            <div class="tcard-right">
+              ${pnl!==null
+                ?`<div class="tc-pnl ${pnl>=0?'green':'red'}">${fU(pnl)}</div>
+                  <div class="tc-pnl-s">${fP(pnlPct)}</div>`
+                :`<div class="muted" style="font-size:13px">無即時價</div>`}
+            </div>
+          </div>
+          <div class="tc-prices">
+            <div class="tp-item"><div class="tpl">進場</div><div class="tpv">${fPrice(t.entry_price)}</div></div>
+            <div class="tp-item"><div class="tpl">即時</div><div class="tpv ${lp?(lp>=t.entry_price?'green':'red'):''}">${lp?fPrice(lp):'—'}</div></div>
+            <div class="tp-item"><div class="tpl">止損 SL</div><div class="tpv red">${fPrice(t.stop_loss_price)}</div></div>
+            <div class="tp-item"><div class="tpl">TP1</div><div class="tpv green">${fPrice(t.tp1_price)}</div></div>
+            <div class="tp-item"><div class="tpl">TP2</div><div class="tpv green">${fPrice(t.tp2_price)}</div></div>
+            <div class="tp-item"><div class="tpl">進場時間</div><div class="tpv muted" style="font-size:11px">${new Date(t.entry_time).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>
+          </div>
+        </div>
+        <div class="tcard-actions">
+          <button class="btn sm" onclick="closeTrade('${t.id}','tp1',${t.tp1_price})">TP1 平倉</button>
+          <button class="btn sm" onclick="closeTrade('${t.id}','tp2',${t.tp2_price})">TP2 平倉</button>
+          <button class="btn sm" onclick="closeTrade('${t.id}','stop_loss',${t.stop_loss_price})">止損</button>
+          ${lp?`<button class="btn sm" onclick="closeTrade('${t.id}','manual',${lp})">市價平倉</button>`:''}
+          <button class="btn sm dn" onclick="deleteTrade('${t.id}')">刪除</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Closed trades
+  const cd=document.getElementById('closedTrades');
+  if(!closed.length){
+    cd.innerHTML='<div class="muted" style="font-size:13px;padding:8px 0">沒有平倉紀錄。</div>';
+  } else {
+    const sorted=[...closed].sort((a,b)=>new Date(b.exit_time||b.entry_time)-new Date(a.exit_time||a.entry_time));
+    cd.innerHTML=sorted.map(t=>{
+      const pnl=t.realized_pnl||0;
+      return `<div class="tcard">
+        <div class="tcard-accent ${t.direction}"></div>
+        <div class="tcard-body">
+          <div class="tcard-row1">
+            <div class="tcard-left">
+              <div class="tc-name">
+                ${t.direction==='long'?'🟢':'🔴'}
+                <a href="https://www.tradingview.com/chart/?symbol=BINANCE:${t.symbol}" target="_blank">${t.base||t.symbol}</a>
+                <span class="tag ${pnl>=0?'g':'r'}">${t.exit_reason||'manual'}</span>
+              </div>
+              <div class="tc-meta">
+                <span>進場 <strong>${fPrice(t.entry_price)}</strong></span>
+                <span>出場 <strong>${fPrice(t.exit_price)}</strong></span>
+                ${t.score!=null?`<span>評分 <strong>${t.score}</strong></span>`:''}
+                <span class="muted">${new Date(t.entry_time).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</span>
+              </div>
+            </div>
+            <div class="tcard-right">
+              <div class="tc-pnl ${pnl>=0?'green':'red'}">${fU(pnl)}</div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function closeTrade(id,reason,sugP){
+  const p=parseFloat(prompt(`平倉 — 出場價格（建議：${sugP}）`,sugP));
+  if(isNaN(p)||p<=0) return;
+  const trades=loadTrades();
+  const idx=trades.findIndex(t=>t.id===id);
+  if(idx<0) return;
+  const t=trades[idx];
+  const pnl=calcPnL(t,p);
+  trades[idx]={...t,status:'closed',exit_price:p,exit_reason:reason,exit_time:new Date().toISOString(),realized_pnl:pnl};
+  saveBalance(loadBalance()+pnl);
+  saveTrades(trades);renderTrades();
+}
+function deleteTrade(id){
+  if(!confirm('確定刪除這筆紙交易？')) return;
+  saveTrades(loadTrades().filter(t=>t.id!==id));renderTrades();
+}
+window.closeTrade=closeTrade;window.deleteTrade=deleteTrade;
+
+// Form
+document.getElementById('addTradeToggle').addEventListener('click',()=>{
+  const f=document.getElementById('addTradeForm');
+  const tog=document.getElementById('addTradeToggle');
+  if(f.classList.contains('open')){f.classList.remove('open');tog.textContent='＋ 新增';}
+  else{f.classList.add('open');tog.textContent='✕ 取消';}
+});
+document.getElementById('cancelTrade').addEventListener('click',()=>{
+  document.getElementById('addTradeForm').classList.remove('open');
+  document.getElementById('addTradeToggle').textContent='＋ 新增';
+});
+document.getElementById('submitTrade').addEventListener('click',()=>{
+  const err=document.getElementById('formError');
+  const sym=document.getElementById('ftSymbol').value.trim().toUpperCase();
+  const dir=document.getElementById('ftDir').value;
+  const entry=parseFloat(document.getElementById('ftEntry').value);
+  const margin=parseFloat(document.getElementById('ftMargin').value);
+  const lev=parseFloat(document.getElementById('ftLeverage').value)||1;
+  const sl=parseFloat(document.getElementById('ftSL').value);
+  const tp1=parseFloat(document.getElementById('ftTP1').value);
+  const tp2=parseFloat(document.getElementById('ftTP2').value);
+  const score=document.getElementById('ftScore').value?parseFloat(document.getElementById('ftScore').value):null;
+  const note=document.getElementById('ftNote').value.trim();
+  if(!sym){err.textContent='請輸入幣種';return;}
+  if(!sym.endsWith('USDT')){err.textContent='目前只支援 USDT 交易對';return;}
+  if(isNaN(entry)||entry<=0){err.textContent='進場價不正確';return;}
+  if(isNaN(margin)||margin<=0){err.textContent='保證金不正確';return;}
+  if(isNaN(sl)||sl<=0){err.textContent='止損價不正確';return;}
+  if(isNaN(tp1)||tp1<=0){err.textContent='TP1 不正確';return;}
+  if(isNaN(tp2)||tp2<=0){err.textContent='TP2 不正確';return;}
+  err.textContent='';
+  const trades=loadTrades();
+  trades.push({id:Date.now().toString(),symbol:sym,base:sym.replace('USDT',''),
+    direction:dir,status:'open',entry_price:entry,entry_time:new Date().toISOString(),
+    margin,leverage:lev,position_value:margin*lev,
+    stop_loss_price:sl,tp1_price:tp1,tp2_price:tp2,score,note});
+  saveTrades(trades);
+  ['ftSymbol','ftEntry','ftMargin','ftSL','ftTP1','ftTP2','ftScore','ftNote'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ftLeverage').value='1';
+  document.getElementById('addTradeForm').classList.remove('open');
+  document.getElementById('addTradeToggle').textContent='＋ 新增';
   renderTrades();
-  renderRisk();
+});
+
+// ── BTC Micro ──
+async function fetchBTCMicro(){
+  const loading=document.getElementById('btcLoading');
+  const grid=document.getElementById('btcGrid');
+  loading.innerHTML='<span class="ld"></span>取得 BTC 資料…';
+  try{
+    const[daily,hourly,depth,ticker]= await Promise.all([
+      fetchKlines('BTCUSDT','1d',52),
+      fetchKlines('BTCUSDT','1h',48),
+      fetchDepth('BTCUSDT',100),
+      bFetch('/ticker/24hr',{symbol:'BTCUSDT'})
+    ]);
+    let oiVal=null,oiCh=null;
+    try{
+      const[oiC,oiH]=await Promise.all([
+        fetch(`${FAPI}/openInterest?symbol=BTCUSDT`).then(r=>r.json()),
+        fetch(`${FAPI_DATA}/openInterestHist?symbol=BTCUSDT&period=1h&limit=3`).then(r=>r.json())
+      ]);
+      oiVal=parseFloat(oiC.openInterest);
+      if(Array.isArray(oiH)&&oiH.length>=2){
+        const v1=parseFloat(oiH[oiH.length-1].sumOpenInterestValue);
+        const v0=parseFloat(oiH[0].sumOpenInterestValue);
+        oiCh=v0>0?(v1/v0-1)*100:null;
+      }
+    }catch{}
+    const closes=daily.map(k=>parseFloat(k[4]));
+    const sma20=avg(closes.slice(-20));
+    const sma50=closes.length>=50?avg(closes.slice(-50)):null;
+    const btcP=parseFloat(ticker.lastPrice);
+    let regime='neutral';
+    if(sma50&&btcP>sma20&&sma20>sma50) regime='bullish';
+    else if(sma50&&btcP<sma20&&sma20<sma50) regime='bearish';
+    else if(btcP>sma20) regime='bullish-bias';
+    else regime='bearish-bias';
+    const hv=hourly.map(k=>parseFloat(k[5]));
+    const latV=hv[hv.length-1];
+    const avgV=avg(hv.slice(-25,-1));
+    const vr=avgV>0?latV/avgV:0;
+    let cvd=0;
+    for(const k of hourly){const o=parseFloat(k[1]),c=parseFloat(k[4]),v=parseFloat(k[5]);cvd+=c>=o?v:-v;}
+    const bv=depth.bids.slice(0,20).reduce((s,[p,q])=>s+parseFloat(p)*parseFloat(q),0);
+    const av=depth.asks.slice(0,20).reduce((s,[p,q])=>s+parseFloat(p)*parseFloat(q),0);
+    const obr=av>0?bv/av:99;
+    let intent='中性';
+    if(obr>=1.4&&cvd>0&&vr>=1.2) intent='強買入 (買方主導)';
+    else if(obr>=1.3&&cvd>0)     intent='買盤傾向';
+    else if(obr<=.7&&cvd<0)      intent='強賣出 (賣方主導)';
+    else if(obr<=.8&&cvd<0)      intent='賣壓傾向';
+    const rColor={bullish:'var(--g)','bullish-bias':'var(--y)',neutral:'var(--mu)','bearish-bias':'var(--y)',bearish:'var(--r)'}[regime];
+    const rCls={bullish:'green','bullish-bias':'yellow',neutral:'muted','bearish-bias':'yellow',bearish:'red'}[regime];
+    const rW={bullish:100,'bullish-bias':70,neutral:50,'bearish-bias':35,bearish:15}[regime];
+    const ch=parseFloat(ticker.priceChangePercent);
+    grid.innerHTML=`
+      <div class="btc-card"><div class="btc-lb">BTC 即時價</div>
+        <div class="btc-vl">${fPrice(btcP)}</div>
+        <div class="btc-sub ${cp(ch)}">${fP(ch)} 24h</div></div>
+      <div class="btc-card"><div class="btc-lb">市場 Regime</div>
+        <div class="btc-vl ${rCls}" style="font-size:16px;letter-spacing:0">${regime.toUpperCase()}</div>
+        <div class="btc-sub">SMA20 ${fPrice(sma20)}${sma50?' / SMA50 '+fPrice(sma50):''}</div>
+        <div class="rbar"><div class="rbar-fill" style="width:${rW}%;background:${rColor}"></div></div></div>
+      <div class="btc-card"><div class="btc-lb">訂單簿 Bid/Ask</div>
+        <div class="btc-vl ${obr>=1.3?'green':obr<=.8?'red':'yellow'}">${obr.toFixed(2)}</div>
+        <div class="btc-sub">Bid ${fVol(bv)} / Ask ${fVol(av)}</div></div>
+      <div class="btc-card"><div class="btc-lb">1h 成交量比</div>
+        <div class="btc-vl ${vr>=1.5?'green':vr>=1?'yellow':'muted'}">${vr.toFixed(2)}x</div>
+        <div class="btc-sub">本時段 ${fVol(latV)} / 均 ${fVol(avgV)}</div></div>
+      <div class="btc-card"><div class="btc-lb">估計 CVD (48h)</div>
+        <div class="btc-vl ${cvd>=0?'green':'red'}">${cvd>=0?'+':''}${fVol(cvd)}</div>
+        <div class="btc-sub">累積買賣量差</div></div>
+      <div class="btc-card"><div class="btc-lb">市場意圖</div>
+        <div class="btc-vl" style="font-size:14px;margin-top:6px;line-height:1.3">${intent}</div>
+        <div class="btc-sub">OB + CVD 判斷</div></div>
+      ${oiVal!==null?`<div class="btc-card"><div class="btc-lb">期貨 OI</div>
+        <div class="btc-vl">${fVol(oiVal*btcP)}</div>
+        <div class="btc-sub">${oiCh!==null?'1h '+fP(oiCh):'—'}</div></div>`:''}`
+    ;
+    renderVolChart(hourly.slice(-24));
+    renderDepthChart(depth);
+    document.getElementById('btcTs').textContent='更新：'+tsNow();
+    loading.textContent='';
+  } catch(e){
+    loading.innerHTML=`<span class="red">載入失敗：${e.message}</span>`;
+  }
 }
 
-function renderSignals() {
-  const body = document.getElementById('signalsBody');
-  body.innerHTML = (state.signals || []).map((s,i) => {
-    const scan = Number(s.price), live = state.prices?.[s.symbol] || scan;
-    const fromScan = scan ? ((live - scan) / scan) * 100 : 0;
-    const scores = s.scores || {};
-    const tags = (s.tags || []).map(t => `<span class="tag ${tagClass(t)}">${t}</span>`).join('');
-    return `<tr><td>${i+1}</td><td><a href="https://www.tradingview.com/chart/?symbol=BINANCE:${s.symbol}" target="_blank">${s.base || s.symbol}</a></td><td>${fmtPrice(scan)}</td><td>${fmtPrice(live)}</td><td class="${fromScan>=0?'green':'red'}">${fmtPct(fromScan)}</td><td class="${Number(s.price_change_24h)>=0?'green':'red'}">${fmtPct(s.price_change_24h)}</td><td>${fmtVol(s.volume_24h_usdt)}</td><td><b>${scores.total ?? '—'}</b></td><td class="small">量 ${scores.volume ?? '—'} / 動 ${scores.momentum ?? '—'} / 突 ${scores.breakout ?? '—'} / OB ${scores.orderbook ?? '—'}</td><td><div class="tags">${tags}</div></td></tr>`;
-  }).join('') || '<tr><td colspan="10">沒有資料。請產生 data/dashboard_state.json。</td></tr>';
+function renderVolChart(hourly){
+  const vols=hourly.map(k=>parseFloat(k[5]));
+  const closes=hourly.map(k=>parseFloat(k[4]));
+  const opens=hourly.map(k=>parseFloat(k[1]));
+  const mx=Math.max(...vols)||1;
+  const bars=vols.map((v,i)=>{
+    const up=closes[i]>=opens[i];
+    const h=Math.round((v/mx)*60);
+    const ts=new Date(hourly[i][0]);
+    return `<div class="vb" title="${ts.getHours()}h: ${fVol(v)}"
+      style="height:${h}px;background:${up?'var(--g)':'var(--r)'};opacity:${up?.75:.6}"></div>`;
+  }).join('');
+  document.getElementById('btcVolChart').innerHTML=`<div class="vol-chart">${bars}</div>`;
 }
 
-function renderTrades() {
-  const list = document.getElementById('tradeList');
-  const sorted = [...(state.trades || [])].sort((a,b)=>String(b.entry_time).localeCompare(String(a.entry_time)));
-  list.innerHTML = sorted.map(t => {
-    const issues = t.validation_issues || [];
-    const pnl = Number(t.computed_pnl_usdt || 0);
-    const live = t.current_price;
-    const issueHtml = issues.map(x => `<span class="issue">${x}</span>`).join('') || '<span class="tag good">valid by generated checks</span>';
-    return `<div class="trade"><div><div class="trade-title">${t.direction === 'short' ? '🔴' : '🟢'} <a href="https://www.tradingview.com/chart/?symbol=BINANCE:${t.symbol}" target="_blank">${t.base || t.symbol}</a> <span class="tag ${t.validation_status==='invalid'?'bad':t.status==='open'?'warn':'good'}">${t.status} / ${t.validation_status}</span></div><div class="meta"><span>entry ${fmtPrice(t.entry_price)}</span>${live?`<span>live ${fmtPrice(live)}</span>`:''}${t.exit_price?`<span>exit ${fmtPrice(t.exit_price)}</span>`:''}<span>SL ${fmtPrice(t.stop_loss_price)}</span><span>TP1 ${fmtPrice(t.tp1_price)}</span><span>TP2 ${fmtPrice(t.tp2_price)}</span><span>risk ${Number(t.risk_to_stop_usdt||0).toFixed(2)}U</span></div><div class="issues">${issueHtml}</div></div><div><div class="value ${pnl>=0?'green':'red'}" style="font-size:22px">${fmtU(pnl)}</div><div class="small">score ${t.score ?? '—'} · ${new Date(t.entry_time).toLocaleString('zh-TW')}</div></div></div>`;
-  }).join('') || '<div class="notice">沒有交易資料</div>';
+function renderDepthChart(depth){
+  const bids=depth.bids.slice(0,10),asks=depth.asks.slice(0,10);
+  const mx=Math.max(...bids.concat(asks).map(([,q])=>parseFloat(q)))||1;
+  const row=(p,q,side)=>{
+    const w=Math.round((parseFloat(q)/mx)*80);
+    return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+      <span style="font-size:11px;color:${side==='bid'?'var(--g)':'var(--r)'};width:72px;text-align:right">${fPrice(p)}</span>
+      <div style="width:${w}px;height:7px;background:${side==='bid'?'var(--g)':'var(--r)'};opacity:.6;border-radius:0 3px 3px 0"></div>
+      <span style="font-size:10px;color:var(--mu)">${fVol(parseFloat(q))}</span></div>`;
+  };
+  document.getElementById('btcDepthChart').innerHTML=
+    `<div style="font-size:10px;color:var(--g);font-weight:700;margin-bottom:4px">買單 BIDS</div>`+
+    bids.map(([p,q])=>row(p,q,'bid')).join('')+
+    `<div style="font-size:10px;color:var(--r);font-weight:700;margin:8px 0 4px">賣單 ASKS</div>`+
+    asks.map(([p,q])=>row(p,q,'ask')).join('');
 }
 
-function renderRisk() {
-  const issuesList = document.getElementById('issuesList');
-  const issues = state.issues || [];
-  issuesList.innerHTML = issues.map(i => `<div class="trade"><div><b>${i.symbol}</b><div class="issues"><span class="issue">${i.code}</span></div></div><div class="small">${i.trade_id}</div></div>`).join('') || '<div class="notice">目前檢查未發現異常。</div>';
-  const m = state.metrics;
-  const open = (state.trades || []).filter(t=>t.status==='open');
-  const sameMinute = Object.entries(open.reduce((acc,t)=>{ const k=String(t.entry_time).slice(0,16); (acc[k] ||= []).push(t.symbol); return acc; },{})).filter(([_,v])=>v.length>1);
-  document.getElementById('riskSummary').innerHTML = `<div class="trade"><div><b>資料所有權</b><div class="meta"><span>讀取 ./data/dashboard_state.json</span><span>${state.provenance?.mode || 'unknown provenance'}</span></div></div></div><div class="trade"><div><b>帳戶與曝險</b><div class="meta"><span>equity ${Number(m.estimated_equity_usdt).toFixed(2)}U</span><span>gross exposure ${Number(m.gross_open_exposure_usdt).toFixed(2)}U</span><span>margin ${Number(m.margin_used_usdt).toFixed(2)}U</span><span>SL risk ${Number(m.theoretical_sl_risk_usdt).toFixed(2)}U</span></div></div></div><div class="trade"><div><b>同分鐘群集</b><div class="meta">${sameMinute.length ? sameMinute.map(([k,v])=>`<span>${k}: ${v.join(', ')}</span>`).join('') : '<span>無明顯同分鐘群集</span>'}</div></div></div>`;
+// ── Tab switching ──
+function switchTab(name){
+  document.querySelectorAll('.dt,.bn').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
+  document.querySelectorAll('.tp').forEach(p=>p.classList.toggle('active',p.id==='tab-'+name));
+  if(name==='btc'&&document.getElementById('btcGrid').innerHTML==='') fetchBTCMicro();
+}
+document.querySelectorAll('.dt,.bn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+
+// ── Main refresh ──
+async function fullRefresh(){
+  setStatus('更新中…','');
+  await Promise.all([loadSignals(),refreshTradePrices()]);
+  renderTrades();
+  setStatus(`更新：${tsNow()} · 每 ${REFRESH_MS/1000}s 自動刷新`,'live');
 }
 
-document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', () => {
-  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-}));
-document.getElementById('refreshBtn').addEventListener('click', refresh);
-refresh();
+document.getElementById('refreshBtn').addEventListener('click',fullRefresh);
+document.getElementById('scanBtn').addEventListener('click',runLiveScan);
+document.getElementById('btcRefreshBtn').addEventListener('click',fetchBTCMicro);
+
+clearInterval(refreshTimer);
+refreshTimer=setInterval(async()=>{await refreshTradePrices();renderTrades();},REFRESH_MS);
+
+renderTrades();
+fullRefresh();
 </script>
 </body>
 </html>
